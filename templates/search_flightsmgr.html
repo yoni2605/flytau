@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - ניהול טיסות</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+    <section class="card" aria-label="ניהול טיסות">
+      <h1 class="title">ניהול טיסות</h1>
+      <p class="subtitle">סינון וצפייה בכל הטיסות במערכת</p>
+      <form class="form" method="get" action="/admin/flights">
+
+        <div>
+          <label class="label">תאריך</label>
+          <input class="input" type="date" name="date">
+        </div>
+
+        <div>
+          <label class="label">מקור</label>
+          <input class="input" type="text" name="origin" placeholder="תל אביב">
+        </div>
+
+        <div>
+          <label class="label">יעד</label>
+          <input class="input" type="text" name="destination" placeholder="לונדון">
+        </div>
+
+        <div>
+          <label class="label">סטטוס טיסה</label>
+          <select class="input" name="status">
+            <option value="">כל הסטטוסים</option>
+            <option value="active">פעילה</option>
+            <option value="full">תפוסה מלאה</option>
+            <option value="completed">התקיימה</option>
+            <option value="cancelled">בוטלה</option>
+          </select>
+        </div>
+
+        <button class="primary" type="submit">
+          סנן טיסות
+        </button>
+      </form>
+      <div style="margin-top:20px; overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+          <thead>
+            <tr style="background:#f7fbff;">
+              <th style="padding:8px; border:1px solid var(--border);">מס׳ טיסה</th>
+              <th style="padding:8px; border:1px solid var(--border);">מקור</th>
+              <th style="padding:8px; border:1px solid var(--border);">יעד</th>
+              <th style="padding:8px; border:1px solid var(--border);">תאריך</th>
+              <th style="padding:8px; border:1px solid var(--border);">סטטוס</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for flight in flights %}
+            <tr>
+              <td style="padding:8px; border:1px solid var(--border); text-align:center;">
+                {{ flight.flight_number }}
+              </td>
+              <td style="padding:8px; border:1px solid var(--border);">
+                {{ flight.origin }}
+              </td>
+              <td style="padding:8px; border:1px solid var(--border);">
+                {{ flight.destination }}
+              </td>
+              <td style="padding:8px; border:1px solid var(--border); text-align:center;">
+                {{ flight.date }}
+              </td>
+              <td style="padding:8px; border:1px solid var(--border); text-align:center;">
+                {{ flight.status }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" style="padding:12px; text-align:center; color:var(--muted);">
+                לא נמצאו טיסות
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+    <div class="home-actions">
+      <a href="/homemgr" class="btn btn-secondary">
+        חזרה לתפריט
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

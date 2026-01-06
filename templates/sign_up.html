@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הרשמה</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+<div class="home">
+  <div class="brand">
+    <img src="/static/logo.png" alt="לוגו" class="logo">
+  </div>
+
+  <div class="card">
+    <h1 class="title">יצירת חשבון חדש</h1>
+    <p class="subtitle">נא למלא את הפרטים להמשך</p>
+      {% if error %}
+          <div class="error-message">
+            {{error}}
+          </div>
+      {% endif %}
+    <form class="form" action="/signup" method="post">
+      <div>
+        <label class="label" for="fullName">שם מלא באנגלית</label>
+        <input class="input" type="text" name="fullname" id="fullName" required>
+      </div>
+
+      <div>
+        <label class="label" for="email">כתובת מייל</label>
+        <input class="input" type="email" name="email" id="email" placeholder="example@mail.com" required>
+      </div>
+
+      <div>
+        <label class="label" for="password">סיסמה</label>
+        <input class="input" type="password" name="password" id="password" required>
+      </div>
+
+      <div>
+        <label class="label" for="passport">מספר דרכון</label>
+        <input class="input" type="text" name="passport" id="passport" required>
+      </div>
+
+      <div>
+        <label class="label" for="dob">תאריך לידה</label>
+        <input class="input" type="date" max="{{ today }}" id="dob" name="dob" required>
+      </div>
+
+      <div>
+        <label class="label" for="phone_nums">כמות מספרי הטלפון ליצירת קשר</label>
+        <input class="input" type="number" id="phone_nums" name="phone_nums" required>
+      </div>
+      <button type="submit" class="primary">המשך</button>
+
+    </form>
+    <a class="ghost" style="margin-top:8px;" href="/">
+        חזרה לדף הבית
+      </a>
+  </div>
+</div>
+</body>
+</html>

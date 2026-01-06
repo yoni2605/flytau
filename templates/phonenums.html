@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הרשמה</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+<div class="home">
+  <div class="brand">
+    <img src="/static/logo.png" alt="לוגו" class="logo">
+  </div>
+
+  <div class="card">
+      {% if error %}
+          <div class="error-message">
+            {{error}}
+          </div>
+      {% endif %}
+    <div>
+      <h1 class="title">פרטי משתמש לאישור</h1>
+      <br>
+      שם מלא: {{session['fullname']}}
+      <br><br>
+      מייל: {{session['email']}}
+      <br><br>
+      מספר דרכון: {{session['passport']}}
+      <br><br>
+      תאריך לידה: {{session['dob']}}
+      <br>
+    </div>
+    <h1 class="title">נא למלא מספרי טלפון</h1>
+    <form class="form" action="/phonenums" method="post">
+      {% for i in range(phonenums) %}
+        <div>
+          <label class="label" for="phones">מספר טלפון {{i+1}}</label>
+          <input class="input" inputmode="numeric" pattern="[0-9]*" type="tel" name="phones" id="phones" required>
+        </div>
+      {% endfor %}
+      <button type="submit" class="primary">אישור וסיום הרשמה</button>
+
+    </form>
+  </div>
+</div>
+</body>
+</html>

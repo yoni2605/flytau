@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - התחברות</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+    <section class="card" aria-label="התחברות למערכת">
+      <h1 class="title">התחברות ללקוח</h1>
+      <p class="subtitle">אנא הזן כתובת מייל וסיסמה</p>
+        {% if error %}
+          <div class="error-message">
+            {{error}}
+          </div>
+      {% endif %}
+      <form class="form" method="POST" action="/logincust">
+
+        <div>
+          <label class="label" for="email">כתובת מייל</label>
+          <input
+            class="input"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="example@email.com"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="label" for="password">סיסמה</label>
+          <input
+            class="input"
+            type="password"
+            id="password"
+            name="password"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <button class="primary" type="submit">
+          התחבר
+        </button>
+
+      </form>
+
+      <div class="divider"><span>או</span></div>
+
+      <a class="ghost" href="/signup">אין לך משתמש? הרשם כאן</a>
+
+      <a class="ghost" style="margin-top:8px;" href="/">
+        חזרה לדף הבית
+      </a>
+    </section>
+
+  </main>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - בחירת צוות ומטוס לטיסה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h1 class="title">בחירת מטוס וצוות לטיסה</h1>
+      <p class="subtitle">הטיסה שנבחרה</p>
+
+      <div class="flight-details" style="margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
+        <p><strong>תאריך המראה:</strong> {{ depdate }}</p>
+        <p><strong>שעת המראה:</strong> {{ deptime }}</p>
+        <p><strong>מקור:</strong> {{ origin }}</p>
+        <p><strong>יעד:</strong> {{ dest }}</p>
+      </div>
+
+      <form class="form" method="post" action="/homemgr/assign_flight">
+
+        <div>
+          <label class="label">בחר מטוס</label>
+          <select class="input" name="aircraft_id" required>
+            {% for ac in available_aircrafts %}
+              <option value="{{ ac[0] }}">{{ ac[0] }} - {{ ac[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="label">בחר טייסים</label>
+          <select class="input" name="pilots" multiple required>
+            {% for p in available_pilots %}
+              <option value="{{ p[0] }}">{{ p[0] }}</option>
+            {% endfor %}
+          </select>
+          <p style="font-size:0.85em; color:#555;">החזק Ctrl או Shift לבחירת מספר טייסים בהתאם למטוס</p>
+        </div>
+
+        <div>
+          <label class="label">בחר דיילים</label>
+          <select class="input" name="attendants" multiple required>
+            {% for a in available_attendants %}
+              <option value="{{ a[0] }}">{{ a[0] }}</option>
+            {% endfor %}
+          </select>
+          <p style="font-size:0.85em; color:#555;">החזק Ctrl או Shift לבחירת מספר דיילים בהתאם למטוס</p>
+        </div>
+
+        <button class="primary" type="submit" style="margin-top:12px;">
+          אשר ושבץ לטיסה
+        </button>
+
+      </form>
+
+    </section>
+
+    <div class="home-actions">
+      <a href="/homemgr" class="btn btn-secondary">
+        חזרה לתפריט
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

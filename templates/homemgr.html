@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - אזור מנהל</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+    <section class="card" aria-label="לוח בקרה למנהל">
+      <h1 class="title">ברוך הבא, {{ admin_name }}</h1>
+      <p class="subtitle">בחר פעולה לביצוע</p>
+
+         <div class="home-actions" style="flex-direction: column; gap: 12px;">
+
+        <a href="/homemgr/flights" class="btn btn-secondary">
+          חיפוש בלוח טיסות
+        </a>
+
+        <a href="/homemgr/addemployee" class="btn btn-secondary">
+          הוספת אנשי צוות
+        </a>
+
+        <a href="/homemgr/addflight" class="btn btn-secondary">
+          הוספת טיסות
+        </a>
+
+        <a href="/admin/reports" class="btn btn-secondary">
+          סטטיסטיקות ודוחות
+        </a>
+
+      </div>
+    </section>
+    <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

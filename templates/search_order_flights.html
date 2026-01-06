@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>חיפוש טיסה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h2 class="title">שלום, <span id="userName">{{ username }}</span>!</h2>
+
+      <p class="subtitle">הזן פרטי טיסה לחיפוש</p>
+      <form class="form" action="/search_flights" method="get">
+        <div class="form-group">
+          <label class="label" for="origin">מקור</label>
+          <input class="input" type="text" id="origin" name="origin" placeholder="לדוגמה: תל אביב" required>
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="destination">יעד</label>
+          <input class="input" type="text" id="destination" name="destination" placeholder="לדוגמה: ניו יורק" required>
+        </div>
+
+        <div class="form-group">
+          <label class="label" for="flightDate">תאריך</label>
+          <input class="input" type="date" min="{{ today }}" id="flightDate" name="flightDate" required>
+        </div>
+
+        <button class="primary" type="submit">חפש טיסות</button>
+      </form>
+    </section>
+
+    <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

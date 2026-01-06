@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - הוספת אנשי צוות</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h1 class="title">הוספת איש צוות</h1>
+      <p class="subtitle">מילוי פרטי עובד חדש למערכת</p>
+        {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+          {% endif %}
+              {% if good %}
+        <div class="success-message">
+            {{ good }}
+        </div>
+            {% endif %}
+
+      <form class="form" method="post" action="/homemgr/addemployee">
+
+        <div>
+          <label class="label">בחר תפקיד</label>
+          <select class="input" name="role" required>
+            <option value="pilot">טייס</option>
+            <option value="crew">דייל</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="label">תעודת זהות</label>
+          <input class="input" type="text" name="id" required>
+        </div>
+
+        <div>
+          <label class="label">שם העובד בעברית</label>
+          <input class="input" type="text" name="full_name_he" required>
+        </div>
+
+        <div>
+          <label class="label">מספר טלפון</label>
+          <input class="input" type="text" name="phone" required>
+        </div>
+
+          <div>
+          <label class="label">תאריך תחילת עבודה</label>
+          <input class="input" type="date" name="start_date" required>
+        </div>
+
+
+        <div>
+          <label class="label">מוסמך לטיסות ארוכות</label>
+          <select class="input" name="long_flights_certified" required>
+            <option value="1">כן</option>
+            <option value="0">לא</option>
+          </select>
+        </div>
+
+          <div style="margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:12px; background:#f9faff;">
+              <p style="font-weight:600; margin-bottom:8px;">כתובת מגורים</p>
+
+              <div style="display:flex; flex-direction:column; gap:8px;">
+                  <input class="input" type="text" name="city" placeholder="עיר" required>
+                  <input class="input" type="text" name="street" placeholder="רחוב" required>
+                  <input class="input" type="text" name="house_number" placeholder="מספר בית" required>
+              </div>
+          </div>
+
+        <button class="primary" type="submit">
+          הוסף איש צוות
+        </button>
+
+      </form>
+    </section>
+
+    <div class="home-actions">
+      <a href="/homemgr" class="btn btn-secondary">
+        חזרה לתפריט
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

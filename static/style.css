@@ -1,0 +1,221 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root{
+  --bg: #eef6ff;         /* כחול בהיר בהיר בהיר */
+  --card: #ffffff;       /* ריבוע לבן "ריק" */
+  --text: #0b1f33;       /* כהה קריא */
+  --muted: #5a7186;
+  --border: #dbe7f3;
+  --primary: #1f6feb;    /* כחול אלגנטי לכפתור */
+}
+
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Arial, "Noto Sans Hebrew", sans-serif;
+}
+
+.home{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 16px;
+  gap: 24px;
+}
+
+.brand{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo{
+  height: 96px;
+  width: auto;
+}
+
+.card{
+  width: 100%;
+  max-width: 460px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(11, 31, 51, 0.08);
+}
+
+.title{
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.subtitle{
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* טפסים כלליים (דפי התחברות נפרדים) */
+.form{
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label{
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.input{
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: #ffffff;
+  outline: none;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.input:focus{
+  border-color: rgba(31,111,235,0.55);
+  box-shadow: 0 0 0 4px rgba(31,111,235,0.10);
+}
+
+.primary{
+  margin-top: 8px;
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary:hover{
+  filter: brightness(0.98);
+}
+
+.divider{
+  margin: 16px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.divider::before,
+.divider::after{
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.ghost{
+  display: block;
+  text-align: center;
+  padding: 12px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ghost:hover{
+  background: #f7fbff;
+}
+
+.error-message{
+  color: #b00020;
+  background-color: #fdecea;
+  border: 1px solid #f5c2c7;
+  padding: 8px 12px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.home-actions{
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn{
+  height: 46px;
+  min-width: 190px;
+  padding: 0 18px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-primary{
+  background: var(--primary);
+  color: #fff;
+  border: 1px solid var(--primary);
+}
+
+.btn-primary:hover{
+  filter: brightness(0.98);
+}
+
+.btn-secondary{
+  background: #fff;
+  color: var(--primary);
+  border: 1px solid rgba(31,111,235,0.35);
+}
+
+.btn-secondary:hover{
+  background: rgba(31,111,235,0.06);
+}
+
+@media (max-width: 420px){
+  .btn{
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.form > div{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.label{
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.input{
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.success-message {
+  color: green;
+  font-weight: bold;
+  margin-bottom: 12px;}

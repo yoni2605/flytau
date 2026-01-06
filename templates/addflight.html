@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - הוספת טיסה חדשה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h1 class="title">הוספת טיסה חדשה</h1>
+      <p class="subtitle">מילוי פרטי טיסה חדשה למערכת</p>
+        {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+          {% endif %}
+      <form class="form" method="post" action="/homemgr/addflight">
+
+        <div>
+          <label class="label">תאריך המראה</label>
+          <input class="input" type="date" name="departure_date" required>
+        </div>
+
+        <div>
+          <label class="label">שעת המראה</label>
+          <input class="input" type="time" name="departure_time" required>
+        </div>
+
+        <div>
+          <label class="label">מקור</label>
+          <select class="input" name="origin" required>
+            {% for origin in origins %}
+              <option value="{{ origin }}">{{ origin }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="label">יעד</label>
+          <select class="input" name="dest" required>
+            {% for dest in dests %}
+              <option value="{{ dest }}">{{ dest }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button class="primary" type="submit" >
+          בדיקת זמינות
+        </button>
+
+      </form>
+    </section>
+
+    <div class="home-actions">
+      <a href="/homemgr" class="btn btn-secondary">חזרה לתפריט</a>
+    </div>
+
+  </main>
+</body>
+</html>
