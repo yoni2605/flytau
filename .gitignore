@@ -16,5 +16,3 @@ env/
 # Env secrets
 .env
 
-# DB dumps / local files (אם יש)
-*.sql
