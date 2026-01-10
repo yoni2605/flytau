@@ -35,7 +35,7 @@ def home_page():
     if 'fullname' in session:
         return redirect('/search_order_flights')
     elif 'namemgr' in session:
-        return redirect('/homemgr')
+        return redirect('/homemgr/flights')
     return render_template('home_page.html')
 
 @app.route('/logincust', methods=['GET','POST'])
@@ -61,7 +61,7 @@ def loginman():
             session.clear()
             session['id'] = id
             session['namemgr'] = getmgr(id)
-            return redirect('/homemgr')
+            return redirect('/homemgr/flights')
         else:
             return render_template('login_manager.html', error='פרטי ההתחברות שגויים')
     return render_template('login_manager.html')
@@ -98,13 +98,9 @@ def search_order_flights():
     name = session.get('fullname', 'guest')
     return render_template('search_order_flights.html', username=name, today=date.today().isoformat())
 
-@app.route('/homemgr')
-def homemgr():
-    return render_template('homemgr.html', admin_name=session['namemgr'])
-
 @app.route('/homemgr/flights')
 def flightsmgr():
-    return render_template('search_flightsmgr.html', flights='')
+    return render_template('search_flightsmgr.html', flights='', admin_name=session['namemgr'])
 
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])
 def addemployee():

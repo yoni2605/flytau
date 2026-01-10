@@ -35,10 +35,13 @@
         <button class="primary" type="submit">חפש טיסות</button>
       </form>
     </section>
-
     <div class="home-actions">
       <a href="/logout" class="btn btn-secondary">
-        התנתק מהמערכת
+        {% if username == 'guest' %}
+        התחבר או הירשם כאן!
+        {% else %}
+      התנתק מהמערכת
+      {% endif %}
       </a>
     </div>
 

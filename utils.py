@@ -3,13 +3,17 @@ from flask_session import Session
 from datetime import timedelta, date, datetime
 import mysql.connector
 from contextlib import contextmanager
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 mydb = mysql.connector.connect(
-    host = "localhost",
-    user = "root",
-    password = "root",
-    database = "FlyTAU",
-    autocommit = True
+    host=os.getenv("DB_HOST"),
+    port=int(os.getenv("DB_PORT", 3306)),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
 )
 
 def new_user(fullname, email, password, passport, dob, signup_date, phones):

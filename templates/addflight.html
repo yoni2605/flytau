@@ -15,8 +15,14 @@
     </section>
 
     <section class="card">
-      <h1 class="title">הוספת טיסה חדשה</h1>
-      <p class="subtitle">מילוי פרטי טיסה חדשה למערכת</p>
+      <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+            <nav class="admin-menu">
+  <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+  <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+  <a href="/homemgr/addflight" class="admin-link active">הוספת טיסות</a>
+  <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+</nav>
+      <p class="subtitle">מלא את פרטי הטיסה החדשה</p>
         {% if error %}
           <div class="error-message">
               {{error}}
@@ -60,7 +66,9 @@
     </section>
 
     <div class="home-actions">
-      <a href="/homemgr" class="btn btn-secondary">חזרה לתפריט</a>
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
+      </a>
     </div>
 
   </main>

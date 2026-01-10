@@ -15,8 +15,14 @@
     </section>
 
     <section class="card">
-      <h1 class="title">הוספת איש צוות</h1>
-      <p class="subtitle">מילוי פרטי עובד חדש למערכת</p>
+        <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+      <nav class="admin-menu">
+  <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+  <a href="/homemgr/addemployee" class="admin-link active">הוספת אנשי צוות</a>
+  <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
+  <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+</nav>
+      <p class="subtitle">מלא את פרטי העובד החדש למערכת</p>
         {% if error %}
           <div class="error-message">
               {{error}}
@@ -67,10 +73,10 @@
           </select>
         </div>
 
-          <div style="margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:12px; background:#f9faff;">
-              <p style="font-weight:600; margin-bottom:8px;">כתובת מגורים</p>
+          <div class="address-box">
+              <label class="label address-title">כתובת מגורים</label>
 
-              <div style="display:flex; flex-direction:column; gap:8px;">
+              <div class="address-fields">
                   <input class="input" type="text" name="city" placeholder="עיר" required>
                   <input class="input" type="text" name="street" placeholder="רחוב" required>
                   <input class="input" type="text" name="house_number" placeholder="מספר בית" required>
@@ -84,9 +90,9 @@
       </form>
     </section>
 
-    <div class="home-actions">
-      <a href="/homemgr" class="btn btn-secondary">
-        חזרה לתפריט
+          <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
       </a>
     </div>
 
