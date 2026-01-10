@@ -140,6 +140,7 @@ def get_dest():
         return [row[0] for row in cursor.fetchall()]
 
 
+
 def calculate_arrival_datetime(dep_date, dep_hour, duration):
     return datetime.combine(dep_date, dep_hour) + timedelta(hours=duration)
 
@@ -152,11 +153,51 @@ def get_route_by_origin_dest(origin, destination):
         )
         return cursor.fetchone()
 
-
-def get_all_aircrafts():
+def get_specific_aricrafts(origin, dest, depdate, deptime):
+    route = get_route_by_origin_dest(origin, dest)
+    if isinstance(depdate, str):
+        depdate = datetime.strptime(depdate, "%Y-%m-%d").date()
+    if isinstance(deptime, str):
+        fmt = "%H:%M:%S" if len(deptime) == 8 else "%H:%M"
+        deptime = datetime.strptime(deptime, fmt).time()
+    duration = float(route[1])
+    dep_dt = datetime.combine(depdate, deptime)
+    size_filter = " AND ac.Size = 'Large' " if duration > 6.0 else ""
     with db_cursor() as cursor:
-        cursor.execute("SELECT Air_Craft_ID, Size FROM Air_Craft")
+        cursor.execute(
+            f"""
+            SELECT DISTINCT ac.Air_Craft_ID, ac.Manufacturer, ac.Size
+            FROM Air_Craft ac
+            LEFT JOIN Flight f
+              ON f.Air_Craft_ID = ac.Air_Craft_ID
+            LEFT JOIN Route r
+              ON r.Route_ID = f.Route_ID
+            WHERE
+              (
+                f.Air_Craft_ID IS NULL
+                OR (
+                  TIMESTAMP(f.Arrival_Date, f.Arrival_Time) = (
+                      SELECT MAX(TIMESTAMP(f2.Arrival_Date, f2.Arrival_Time))
+                      FROM Flight f2
+                      WHERE f2.Air_Craft_ID = ac.Air_Craft_ID
+                        AND TIMESTAMP(f2.Arrival_Date, f2.Arrival_Time) <= %s
+                  )
+                  AND r.Destination = %s
+                )
+              )
+              {size_filter}
+            ORDER BY ac.Air_Craft_ID
+            """,
+            (dep_dt, origin)
+        )
         return cursor.fetchall()
+
+
+
+def getaircraft_byid(id):
+    with db_cursor() as cursor:
+        cursor.execute("SELECT Manufacturer, Size FROM Air_Craft WHERE Air_Craft_ID = %s", (id,))
+        return cursor.fetchone()
 
 
 def get_all_pilots():

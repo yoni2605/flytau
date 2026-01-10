@@ -11,16 +11,6 @@ load_dotenv()
 app = Flask(__name__)
 
 
-def get_db():
-    return mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        port=int(os.getenv("DB_PORT", 3306)),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME"),
-        connection_timeout=5
-    )
-
 app.config.update(
     SESSION_TYPE = 'filesystem',
     SESSION_FILE_DIR = '/flask_session_data',
@@ -138,17 +128,35 @@ def addflight():
         session['origin'] = request.form.get('origin')
         session['dest'] = request.form.get('dest')
         if session['origin'] == session['dest']:
-            return render_template('addflight.html', origins=origins, dests=dests, error='לא ניתן לבחור טיסה עם מקור ויעד זהים')
-        return redirect('/homemgr/addflight/addcrew')
-    return render_template('addflight.html', origins=origins, dests=dests)
+            return render_template('addflight.html', origins=origins, dests=dests, error='לא ניתן לבחור טיסה עם מקור ויעד זהים', today=date.today().isoformat())
+        return redirect('/homemgr/addflight/chooseaircrafts')
+    return render_template('addflight.html', origins=origins, dests=dests, today=date.today().isoformat())
 
-@app.route('/homemgr/addflight/addcrew', methods=["POST", "GET"])
-def addcrew():
+@app.route('/homemgr/addflight/chooseaircrafts', methods=["POST", "GET"])
+def chooseaircrafts():
+    if request.method == 'POST':
+        session['aicraft'] = request.form.get('aircraft_id')
+        return redirect('/homemgr/addflight/choosecrew')
+    allaircrafts = get_specific_aricrafts(session['origin'], session['dest'], session['depdate'], session['deptime'])
+    return render_template('chooseaircrafts.html', aircrafts=allaircrafts)
+
+
+@app.route('/homemgr/addflight/choosecrew', methods=["POST", "GET"])
+def choosecrew():
+    
+    return render_template('choosecrew.html')
+
+@app.route('/homemgr/addflight/subflight', methods=["POST", "GET"])
+def submitflight():
     depdate = datetime.strptime(session['depdate'], "%Y-%m-%d").date()
     deptime = datetime.strptime(session['deptime'], "%H:%M").time()
-    available_aircrafts, selected_pilots, selected_attendants = get_available_resources(depdate, deptime, session['origin'], session['dest'])
-    return render_template('addcrew.html',origin=session['origin'],dest=session['dest'],deptime=session['deptime'],depdate=session['depdate'], available_aircrafts=available_aircrafts, available_pilots=selected_pilots, available_attendants=selected_attendants)
-
+    aircraft_db = getaircraft_byid(session['aircraft'])
+    aircraft = {
+        "Air_Craft_ID": session['aircraft'],
+        "Manufacturer": aircraft_db[0],
+        "Size": aircraft_db[1]
+    }
+    return render_template('choosecrew.html')
 
 @app.route('/logout')
 def logout():
