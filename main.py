@@ -157,7 +157,14 @@ def addaircraft():
 @app.route("/homemgr/addaircraft/chooseclass", methods=["POST", "GET"])
 def chooseclass():
     if request.method == 'POST':
-        pass
+        ok, result = validate_seats(request.form.get("econrow"), request.form.get("econcol"), max_rows=30, max_cols=20)
+        if not ok:
+            return render_template("addaircraft.html", error=result)
+        ok, result = validate_seats(request.form.get("buisnrow"), request.form.get("buisncol"), max_rows=30, max_cols=20)
+        if not ok:
+            return render_template("addaircraft.html", error=result)
+
+
     return render_template('addairclass.html', size=session['newaircraft'][3])
 
 @app.route('/homemgr/addflight', methods=["POST", "GET"])

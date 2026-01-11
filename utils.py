@@ -175,6 +175,25 @@ def check_aircraft(id):
         result = cursor.fetchone()
         return result is not None
 
+def validate_seats(rows, cols, max_rows, max_cols):
+    if rows is None or cols is None:
+        return False, "חסרים ערכים"
+    try:
+        rows = int(rows)
+        cols = int(cols)
+    except ValueError:
+        return False, "ערכים לא מספריים"
+    if rows < 1 or cols < 1:
+        return False, "הערכים חייבים להיות חיוביים"
+    if rows > max_rows or cols > max_cols:
+        return False, f"מקסימום {max_rows} שורות ו-{max_cols} טורים"
+    return True, (rows, cols)
+
+def add_aircraft(aircraft, econrow, econcol, buiscol=None, buisrow=None):
+    with db_cursor() as cursor:
+        cursor.execute('INSERT INTO Air_Craft VALUES(%S, %S, %S, %s)',(aircraft[0],aircraft[2],aircraft[1],aircraft[3]))
+        pass
+
 
 def get_origins():
     with db_cursor() as cursor:
