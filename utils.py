@@ -191,7 +191,7 @@ def validate_seats(rows, cols, max_rows, max_cols):
 
 def add_aircraft(aircraft, econrow, econcol, buiscol=None, buisrow=None):
     with db_cursor() as cursor:
-        cursor.execute('INSERT INTO Air_Craft VALUES(%S, %S, %S, %s)',(aircraft[0],aircraft[2],aircraft[1],aircraft[3]))
+        cursor.execute('INSERT INTO Air_Craft VALUES(%s, %s, %s, %s)',(aircraft[0],aircraft[2],aircraft[1],aircraft[3]))
         pass
 
 
