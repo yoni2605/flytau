@@ -15,49 +15,67 @@
     </section>
 
     <section class="card">
-      <h1 class="title">בחירת צוות לטיסה ומחירים</h1>
-      <p class="subtitle">הטיסה שנבחרה</p>
+      <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
 
-      <div class="flight-details" style="margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
-        <p><strong>תאריך המראה:</strong> {{ depdate }}</p>
-        <p><strong>שעת המראה:</strong> {{ deptime }}</p>
-        <p><strong>מקור:</strong> {{ origin }}</p>
-        <p><strong>יעד:</strong> {{ dest }}</p>
-      </div>
+      <nav class="admin-menu">
+        <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+        <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+        <a href="/homemgr/addflight" class="admin-link active">הוספת טיסות</a>
+        <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+      </nav>
 
-      <form class="form" method="post" action="/homemgr/assign_flight">
+
+      {% if error %}
+        <div class="error-message">{{ error }}</div>
+      {% endif %}
+
+      <form class="form" method="post" action="/homemgr/addflight/choosecrew">
 
         <div>
-          <label class="label">בחר טייסים</label>
-          <select class="input" name="pilots" multiple required>
+          <label class="label">
+  בחר טייסים
+          <span style="font-weight: normal; color:#666;">
+    (יש לבחור {{ req_pilots }})
+          </span>
+          </label>
+          <select class="input" name="pilot_ids" multiple required size="8">
             {% for p in available_pilots %}
-              <option value="{{ p[0] }}">{{ p[0] }}</option>
+              <option value="{{ p[0] }}">{{ p[0] }} - {{ p[1] }}</option>
             {% endfor %}
           </select>
-          <p style="font-size:0.85em; color:#555;">החזק Ctrl או Shift לבחירת מספר טייסים בהתאם למטוס</p>
+          <div class="select-hint">
+  לבחירה מרובה: החזק <span class="kbd">Ctrl</span> או <span class="kbd">Shift</span>
+</div>
         </div>
 
         <div>
-          <label class="label">בחר דיילים</label>
-          <select class="input" name="attendants" multiple required>
+          <label class="label">
+  בחר דיילים
+  <span style="font-weight: normal; color:#666;">
+    (יש לבחור {{ req_attendants }})
+  </span>
+</label>
+
+          <select class="input" name="attendant_ids" multiple required size="10">
             {% for a in available_attendants %}
-              <option value="{{ a[0] }}">{{ a[0] }}</option>
+              <option value="{{ a[0] }}">{{ a[0] }} - {{ a[1] }}</option>
             {% endfor %}
           </select>
-          <p style="font-size:0.85em; color:#555;">החזק Ctrl או Shift לבחירת מספר דיילים בהתאם למטוס</p>
+          <div class="select-hint">
+  לבחירה מרובה: החזק <span class="kbd">Ctrl</span> או <span class="kbd">Shift</span>
+</div>
         </div>
 
-        <button class="primary" type="submit" style="margin-top:12px;">
+        <button class="primary" type="submit">
           אשר ושבץ לטיסה
         </button>
 
       </form>
 
     </section>
-
     <div class="home-actions">
-      <a href="/homemgr" class="btn btn-secondary">
-        חזרה לתפריט
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
       </a>
     </div>
 

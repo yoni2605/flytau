@@ -9,99 +9,119 @@
 
 <body>
   <main class="home">
+
     <section class="brand">
       <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
     </section>
+
     <section class="card" aria-label="ניהול טיסות">
-      <h3 class="title">שלום, {{ admin_name }}</h3>
+      <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+
       <nav class="admin-menu">
-  <a href="/homemgr/flights" class="admin-link active">חיפוש בלוח טיסות</a>
-  <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
-  <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
-  <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
-</nav>
-<form class="form filters" method="get" action="/admin/flights">
+        <a href="/homemgr/flights" class="admin-link active">חיפוש בלוח טיסות</a>
+        <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+        <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
+        <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+      </nav>
 
-  <div class="f-date">
-    <label class="label">תאריך</label>
-    <input class="input" type="date" name="date">
-  </div>
+      <form class="form filters" method="get" action="/homemgr/flights">
 
-  <div class="f-origin">
-    <label class="label">מקור</label>
-    <input class="input" type="text" name="origin" placeholder="תל אביב">
-  </div>
+        <div class="f-date">
+          <label class="label">תאריך</label>
+          <input class="input" type="date" min="{{ today }}" name="date" value="{{ request.args.get('filtered_date','') }}">
+        </div>
 
-  <div class="f-dest">
-    <label class="label">יעד</label>
-    <input class="input" type="text" name="destination" placeholder="לונדון">
-  </div>
+        <div class="f-origin">
+  <label class="label">מקור</label>
+  <select class="input" name="origin">
+    <option value="">כל המקורות</option>
+    {% for o in origins %}
+      <option value="{{ o }}" {% if request.args.get('origin','') == o %}selected{% endif %}>
+        {{ o }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
 
-  <div class="f-status">
-    <label class="label">סטטוס טיסה</label>
-    <select class="input" name="status">
-      <option value="">כל הסטטוסים</option>
-      <option value="active">פעילה</option>
-      <option value="full">תפוסה מלאה</option>
-      <option value="completed">התקיימה</option>
-      <option value="cancelled">בוטלה</option>
-    </select>
-  </div>
+<div class="f-dest">
+  <label class="label">יעד</label>
+  <select class="input" name="destination">
+    <option value="">כל היעדים</option>
+    {% for d in dests %}
+      <option value="{{ d }}" {% if request.args.get('destination','') == d %}selected{% endif %}>
+        {{ d }}
+      </option>
+    {% endfor %}
+  </select>
+</div>
 
-  <div class="filters-actions">
-    <a class="btn btn-secondary filter-action" href="/admin/flights">נקה</a>
-    <button class="btn btn-primary filter-action" type="submit">סנן</button>
-  </div>
 
-</form>
+        <div class="f-status">
+          <label class="label">סטטוס טיסה</label>
+          <select class="input" name="status">
+            <option value="" {% if request.args.get('status','') == '' %}selected{% endif %}>כל הסטטוסים</option>
+            <option value="Scheduled" {% if request.args.get('status') == 'Scheduled' %}selected{% endif %}>מתוכננת</option>
+            <option value="Full" {% if request.args.get('status') == 'Full' %}selected{% endif %}>תפוסה מלאה</option>
+            <option value="Completed" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>התקיימה</option>
+            <option value="Cancelled" {% if request.args.get('status') == 'Cancelled' %}selected{% endif %}>בוטלה</option>
+          </select>
+        </div>
 
+        <div class="filters-actions">
+          <a class="btn btn-secondary filter-action" href="/homemgr/flights">נקה</a>
+          <button class="btn btn-primary filter-action" type="submit">סנן</button>
+        </div>
+
+      </form>
 
       <div style="margin-top:20px; overflow-x:auto;">
         <table style="width:100%; border-collapse:collapse; font-size:14px;">
           <thead>
             <tr style="background:#f7fbff;">
-              <th style="padding:8px; border:1px solid var(--border);">מס׳ טיסה</th>
+              <th style="padding:8px; border:1px solid var(--border);">מטוס</th>
               <th style="padding:8px; border:1px solid var(--border);">מקור</th>
               <th style="padding:8px; border:1px solid var(--border);">יעד</th>
-              <th style="padding:8px; border:1px solid var(--border);">תאריך</th>
+              <th style="padding:8px; border:1px solid var(--border);">תאריך המראה</th>
+              <th style="padding:8px; border:1px solid var(--border);">שעת המראה</th>
+              <th style="padding:8px; border:1px solid var(--border);">תאריך נחיתה</th>
+              <th style="padding:8px; border:1px solid var(--border);">שעת נחיתה</th>
+              <th style="padding:8px; border:1px solid var(--border);">Economy</th>
+              <th style="padding:8px; border:1px solid var(--border);">Business</th>
               <th style="padding:8px; border:1px solid var(--border);">סטטוס</th>
             </tr>
           </thead>
+
           <tbody>
-            {% for flight in flights %}
-            <tr>
-              <td style="padding:8px; border:1px solid var(--border); text-align:center;">
-                {{ flight.flight_number }}
-              </td>
-              <td style="padding:8px; border:1px solid var(--border);">
-                {{ flight.origin }}
-              </td>
-              <td style="padding:8px; border:1px solid var(--border);">
-                {{ flight.destination }}
-              </td>
-              <td style="padding:8px; border:1px solid var(--border); text-align:center;">
-                {{ flight.date }}
-              </td>
-              <td style="padding:8px; border:1px solid var(--border); text-align:center;">
-                {{ flight.status }}
-              </td>
-            </tr>
+            {% for f in flights %}
+              <tr>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[0] }}</td>
+                <td style="padding:8px; border:1px solid var(--border);">{{ f[3] }}</td>
+                <td style="padding:8px; border:1px solid var(--border);">{{ f[4] }}</td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[1] }}</td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[2] }}</td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[5] }}</td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[6] }}</td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[7] }}</td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">
+                  {% if f[8] is not none %}{{ f[8] }}{% else %}—{% endif %}
+                </td>
+                <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[9] }}</td>
+              </tr>
             {% else %}
-            <tr>
-              <td colspan="5" style="padding:12px; text-align:center; color:var(--muted);">
-                לא נמצאו טיסות
-              </td>
-            </tr>
+              <tr>
+                <td colspan="10" style="padding:12px; text-align:center; color:var(--muted);">
+                  לא נמצאו טיסות
+                </td>
+              </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
     </section>
+
     <div class="home-actions">
-      <a href="/logout" class="btn btn-secondary">
-        התנתק מהמערכת
-      </a>
+      <a href="/logout" class="btn btn-secondary">התנתק מהמערכת</a>
     </div>
 
   </main>

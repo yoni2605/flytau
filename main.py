@@ -72,7 +72,7 @@ def sign_up():
         session['dob'] = request.form.get('dob')
         session['phonenums'] = int(request.form.get('phone_nums'))
         session['singup_date'] = date.today().isoformat()
-        if(mailexists(session['email']) == True):
+        if mailexists(session['email']) == True:
             return render_template('sign_up.html', error='המייל קיים במערכת')
         return redirect('/phonenums')
     return render_template('sign_up.html', today=date.today().isoformat())
@@ -92,7 +92,28 @@ def search_order_flights():
 
 @app.route('/homemgr/flights')
 def flightsmgr():
-    return render_template('search_flightsmgr.html', flights='', admin_name=session['namemgr'])
+    filtered_date = request.args.get('date') or None
+    origin = request.args.get('origin') or None
+    destination = request.args.get('destination') or None
+    status = request.args.get('status') or None
+
+    flights = get_allflights_filtered(
+        date=filtered_date,
+        origin=origin,
+        destination=destination,
+        status=status
+    )
+    origins = get_origins()
+    dests = get_dest()
+
+    return render_template(
+        'search_flightsmgr.html',
+        flights=flights,
+        admin_name=session['namemgr'],
+        today=date.today().isoformat(),
+        origins=origins,
+        dests=dests
+    )
 
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])
 def addemployee():
@@ -135,7 +156,7 @@ def addflight():
 @app.route('/homemgr/addflight/chooseaircrafts', methods=["POST", "GET"])
 def chooseaircrafts():
     if request.method == 'POST':
-        session['aicraft'] = request.form.get('aircraft_id')
+        session['aircraft'] = request.form.get('aircraft_id')
         return redirect('/homemgr/addflight/choosecrew')
     allaircrafts = get_specific_aricrafts(session['origin'], session['dest'], session['depdate'], session['deptime'])
     return render_template('chooseaircrafts.html', aircrafts=allaircrafts)
@@ -143,20 +164,100 @@ def chooseaircrafts():
 
 @app.route('/homemgr/addflight/choosecrew', methods=["POST", "GET"])
 def choosecrew():
-    
-    return render_template('choosecrew.html')
+    route = get_route_by_origin_dest(session['origin'], session['dest'])
+    duration = float(route[1])
+    is_long = duration > 6.0
+    aircraft = getaircraft_byid(session['aircraft'])
+    size = aircraft[1]
+    req_pilots = 3 if size == 'Large' else 2
+    req_attendants = 6 if size == 'Large' else 3
+    pilots = get_available_pilots(session['origin'], session['depdate'], session['deptime'], is_long)
+    attendants = get_available_attendants(session['origin'], session['depdate'], session['deptime'], is_long)
+    if request.method == "POST":
+        pilot_ids = [x.strip() for x in request.form.getlist("pilot_ids") if x.strip()]
+        attendant_ids = [x.strip() for x in request.form.getlist("attendant_ids") if x.strip()]
+        errors = []
+        if len(pilot_ids) != req_pilots:
+            errors.append(f"חייב לבחור בדיוק {req_pilots} טייסים")
+        if len(attendant_ids) != req_attendants:
+            errors.append(f"חייב לבחור בדיוק {req_attendants} דיילים")
+        if errors:
+            return render_template(
+                "choosecrew.html",
+                available_pilots=pilots,
+                available_attendants=attendants,
+                req_pilots=req_pilots,
+                req_attendants=req_attendants,
+                origin=session["origin"],
+                dest=session["dest"],
+                depdate=session["depdate"],
+                deptime=session["deptime"],
+                error=" | ".join(errors)
+            )
+        session["chosen_pilots"] = pilot_ids
+        session["chosen_attendants"] = attendant_ids
+        return redirect("/homemgr/addflight/subflight")
+    return render_template("choosecrew.html", available_pilots=pilots, available_attendants=attendants, origin=session["origin"], dest=session["dest"], depdate=session["depdate"], deptime=session["deptime"],req_pilots=req_pilots, req_attendants=req_attendants,)
 
 @app.route('/homemgr/addflight/subflight', methods=["POST", "GET"])
 def submitflight():
-    depdate = datetime.strptime(session['depdate'], "%Y-%m-%d").date()
-    deptime = datetime.strptime(session['deptime'], "%H:%M").time()
-    aircraft_db = getaircraft_byid(session['aircraft'])
-    aircraft = {
-        "Air_Craft_ID": session['aircraft'],
-        "Manufacturer": aircraft_db[0],
-        "Size": aircraft_db[1]
-    }
-    return render_template('choosecrew.html')
+    origin = session["origin"]
+    dest = session["dest"]
+    depdate = session["depdate"]
+    deptime = session["deptime"]
+    aircraft_id = session["aircraft"]
+    manufacturer, size = getaircraft_byid(aircraft_id)
+    is_large = (size == "Large")
+    pilot_ids = session.get("chosen_pilots", [])
+    attendant_ids = session.get("chosen_attendants", [])
+    pilots = get_employee_names_by_ids(pilot_ids)
+    attendants = get_employee_names_by_ids(attendant_ids)
+    if request.method == "POST":
+        econ = request.form.get("economy_price", "").strip()
+        bus = request.form.get("business_price", "").strip() if is_large else None
+        errors = []
+        try:
+            econ_val = float(econ)
+            if econ_val <= 0:
+                errors.append("מחיר Economy חייב להיות גדול מ-0")
+        except:
+            errors.append("מחיר Economy לא תקין")
+        if is_large:
+            try:
+                bus_val = float(bus)
+                if bus_val <= 0:
+                    errors.append("מחיר Business חייב להיות גדול מ-0")
+            except:
+                errors.append("מחיר Business לא תקין")
+        else:
+            bus_val = None
+
+        if errors:
+            return render_template(
+                "submitflight.html",
+                depdate=depdate, deptime=deptime, origin=origin, dest=dest,
+                aircraft_id=aircraft_id, manufacturer=manufacturer, size=size,
+                pilots=pilots, attendants=attendants,
+                is_large=is_large,
+                economy_price=econ,
+                business_price=bus if bus is not None else "",
+                error=" | ".join(errors)
+            )
+
+        create_flight_and_assign_crew(aircraft_id,origin,dest,depdate,deptime,econ_val,bus_val,pilot_ids,attendant_ids,"Scheduled")
+
+        return redirect("/homemgr/flights")
+
+    return render_template(
+        "submitflight.html",
+        depdate=depdate, deptime=deptime, origin=origin, dest=dest,
+        aircraft_id=aircraft_id, manufacturer=manufacturer, size=size,
+        pilots=pilots, attendants=attendants,
+        is_large=is_large,
+        economy_price="",
+        business_price="",
+        error=None
+    )
 
 @app.route('/logout')
 def logout():

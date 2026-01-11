@@ -25,15 +25,16 @@ body{
   font-family:"Segoe UI", Arial, "Noto Sans Hebrew", sans-serif;
   color:var(--text);
 
-  /* רקע: תמונה + כיסוי עדין יותר (לא כהה מדי) */
   background:
-    radial-gradient(800px 520px at 50% 22%, rgba(255,255,255,.62), rgba(255,255,255,0) 70%),
-    linear-gradient(180deg, rgba(7,18,30,.22), rgba(7,18,30,.50)),
+    radial-gradient(900px 600px at 50% 20%, rgba(255,255,255,.95), rgba(255,255,255,.85)),
     var(--bgImage);
-  background-size: auto, auto, cover;
-  background-position: center, center, center;
+
+
+  background-image: var(--bgImage);
+  background-size: cover;
+  background-position: center top;
   background-repeat: no-repeat;
-  background-attachment: scroll, scroll, fixed;
+  background-attachment: fixed;
 }
 
 /* ===== Layout אחיד לכל הדפים ===== */
@@ -818,4 +819,62 @@ main, .home{
     padding-bottom: 6px;
   }
   .card .form.filters::-webkit-scrollbar{ height: 8px; }
+}
+
+.select-hint {
+  margin-top: 6px;
+  font-size: 0.85em;
+  color: #666;
+
+  /* החלק החשוב */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+
+  direction: rtl;
+  text-align: center;
+}
+
+
+.kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 0 2px;
+  font-size: 0.85em;
+  font-family: monospace;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f3f3f3;
+  color: #333;
+}
+
+.select-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* בגלל RTL – שמאל זה בעצם flex-end */
+.select-row {
+  flex-direction: row-reverse;
+}
+
+.side-hint {
+  font-size: 0.85em;
+  color: #666;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 2px;
+  font-size: 0.85em;
+  font-family: monospace;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f3f3f3;
+  color: #333;
 }

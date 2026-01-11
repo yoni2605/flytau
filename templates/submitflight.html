@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - אישור ותמחור טיסה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+
+      <nav class="admin-menu">
+        <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+        <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+        <a href="/homemgr/addflight" class="admin-link active">הוספת טיסות</a>
+        <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+      </nav>
+
+      <p class="subtitle">אישור פרטי הטיסה ותמחור כרטיסים</p>
+
+      {% if error %}
+        <div class="error-message">{{ error }}</div>
+      {% endif %}
+
+      <div class="flight-details" style="margin-top:14px; margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
+        <p><strong>תאריך המראה:</strong> {{ depdate }}</p>
+        <p><strong>שעת המראה:</strong> {{ deptime }}</p>
+        <p><strong>מקור:</strong> {{ origin }}</p>
+        <p><strong>יעד:</strong> {{ dest }}</p>
+        <p><strong>מטוס:</strong> {{ aircraft_id }} - {{ manufacturer }} - {{ size }}</p>
+
+        <p><strong>טייסים:</strong>
+          {% for p in pilots %}
+            {{ p[0] }} - {{ p[1] }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+
+        <p><strong>דיילים:</strong>
+          {% for a in attendants %}
+            {{ a[0] }} - {{ a[1] }}{% if not loop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+      </div>
+
+      <form class="form" method="post" action="/homemgr/addflight/subflight">
+
+        <div>
+          <label class="label">מחיר כרטיס Economy</label>
+          <input class="input" type="number" name="economy_price" min="1" step="0.01" required value="{{ economy_price }}">
+        </div>
+
+        {% if is_large %}
+          <div>
+            <label class="label">מחיר כרטיס Business</label>
+            <input class="input" type="number" name="business_price" min="1" step="0.01" required value="{{ business_price }}">
+          </div>
+        {% endif %}
+
+        <button class="primary" type="submit">
+          אשר טיסה ושמור מחירים
+        </button>
+
+      </form>
+
+    </section>
+
+      <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
+      </a>
+    </div>
+  </main>
+</body>
+</html>
