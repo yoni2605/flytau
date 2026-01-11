@@ -14,6 +14,7 @@ def get_db():
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME"),
+        autocommit=True,
         connection_timeout=5
     )
 
@@ -30,6 +31,7 @@ def db_cursor(dictionary: bool = False):
             cur.close()
         finally:
             db.close()
+
 
 
 def new_user(fullname, email, password, passport, dob, signup_date, phones):
@@ -390,7 +392,7 @@ def get_employee_names_by_ids(ids):
     return [(i, name_map.get(i, "")) for i in ids]
 
 
-from datetime import datetime, timedelta
+
 
 def create_flight_and_assign_crew(
     aircraft_id,

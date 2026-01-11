@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>חיפוש טיסה</title>
+  <title>ניהול טיסות</title>
   <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
+
 <body>
   <main class="home">
     <section class="brand">
@@ -13,29 +14,147 @@
     </section>
 
     <section class="card">
-      <h2 class="title">שלום, <span id="userName">{{ username }}</span>!</h2>
+      <h2 class="title">שלום, {{ name }}!</h2>
+      <p class="subtitle">צפייה וסינון טיסות במערכת</p>
 
-      <p class="subtitle">הזן פרטי טיסה לחיפוש</p>
-      <form class="form" action="/search_flights" method="get">
-        <div class="form-group">
-          <label class="label" for="origin">מקור</label>
-          <input class="input" type="text" id="origin" name="origin" placeholder="לדוגמה: תל אביב" required>
+      <!-- ===== FILTERS (כמו שביקשת - נשאר אותו דבר) ===== -->
+      <form class="form filters" method="get" action="/search_order_flights">
+
+        <div class="f-date">
+          <label class="label">תאריך</label>
+          <input class="input"
+                 type="date"
+                 min="{{ today }}"
+                 name="date"
+                 value="{{ request.args.get('date','') }}">
         </div>
 
-        <div class="form-group">
-          <label class="label" for="destination">יעד</label>
-          <input class="input" type="text" id="destination" name="destination" placeholder="לדוגמה: ניו יורק" required>
+        <div class="f-origin">
+          <label class="label">מקור</label>
+          <select class="input" name="origin">
+            <option value="">כל המקורות</option>
+            {% for o in origins %}
+              <option value="{{ o }}" {% if request.args.get('origin','') == o %}selected{% endif %}>
+                {{ o }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
 
-        <div class="form-group">
-          <label class="label" for="flightDate">תאריך</label>
-          <input class="input" type="date" min="{{ today }}" id="flightDate" name="flightDate" required>
+        <div class="f-dest">
+          <label class="label">יעד</label>
+          <select class="input" name="destination">
+            <option value="">כל היעדים</option>
+            {% for d in dests %}
+              <option value="{{ d }}" {% if request.args.get('destination','') == d %}selected{% endif %}>
+                {{ d }}
+              </option>
+            {% endfor %}
+          </select>
         </div>
 
-        <button class="primary" type="submit">חפש טיסות</button>
+        <div class="f-status">
+          <label class="label">סטטוס טיסה</label>
+          <select class="input" name="status">
+            <option value="" {% if request.args.get('status','') == '' %}selected{% endif %}>כל הסטטוסים</option>
+            <option value="Scheduled" {% if request.args.get('status') == 'Scheduled' %}selected{% endif %}>מתוכננת</option>
+            <option value="Full" {% if request.args.get('status') == 'Full' %}selected{% endif %}>תפוסה מלאה</option>
+            <option value="Completed" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>התקיימה</option>
+            <option value="Cancelled" {% if request.args.get('status') == 'Cancelled' %}selected{% endif %}>בוטלה</option>
+          </select>
+        </div>
+
+        <div class="filters-actions">
+          <a class="btn btn-secondary filter-action" href="/search_order_flights">נקה</a>
+          <button class="btn btn-primary filter-action" type="submit">סנן</button>
+        </div>
+
       </form>
+      <!-- ===== END FILTERS ===== -->
+
+      <!-- ===== FLIGHTS LIST ===== -->
+      {% if flights and flights|length > 0 %}
+        <div class="flights-list" role="list">
+          {% for f in flights %}
+            {# indices לפי ה-SELECT שלך:
+              0 Air_Craft_ID
+              1 Dep_Date
+              2 Dep_Hour
+              3 Origin
+              4 Destination
+              5 Arrival_Date
+              6 Arrival_Time
+              7 Economy_Price
+              8 Business_Price
+              9 Status
+            #}
+
+            <a class="flight-card" role="listitem"
+               href="/homemgr/flight/details?aircraft_id={{ f[0] }}&dep_date={{ f[1] }}&dep_hour={{ f[2] }}">
+
+              <div class="flight-top">
+                <div class="flight-route">
+                  <div class="flight-city">{{ f[3] }}</div>
+                  <div class="flight-arrow">⟵</div>
+                  <div class="flight-city">{{ f[4] }}</div>
+                </div>
+
+                <div class="flight-badge
+                  {% if f[9] in ['Scheduled'] %} ok
+                  {% elif f[9] in ['Completed'] %} ok
+                  {% elif f[9] in ['Full'] %} warn
+                  {% elif f[9] in ['Cancelled'] %} warn
+                  {% endif %}">
+                  {{ f[9] }}
+                </div>
+              </div>
+
+              <div class="flight-meta">
+                <div class="meta-item">
+                  <div class="meta-label">יציאה</div>
+                  <div class="meta-val">{{ f[1] }} {{ f[2] }}</div>
+                </div>
+
+                <div class="meta-item">
+                  <div class="meta-label">הגעה</div>
+                  <div class="meta-val">{{ f[5] }} {{ f[6] }}</div>
+                </div>
+
+                <div class="meta-item">
+                  <div class="meta-label">מטוס</div>
+                  <div class="meta-val">#{{ f[0] }}</div>
+                </div>
+              </div>
+
+              <div class="flight-prices">
+                <div class="price-box">
+                  <div class="price-label">אקונומי</div>
+                  <div class="price-val">₪{{ f[7] }}</div>
+                </div>
+
+                <div class="price-box">
+                  <div class="price-label">עסקים</div>
+                  <div class="price-val">₪{{ f[8] }}</div>
+                </div>
+
+                <div class="flight-cta">
+                  <span class="cta-text">פרטי טיסה</span>
+                </div>
+              </div>
+
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-title">לא נמצאו טיסות</div>
+          <div class="empty-sub">נסה לשנות סינון ולחפש שוב.</div>
+          <a class="btn btn-secondary" href="/homemgr/flights">נקה סינון</a>
+        </div>
+      {% endif %}
+
     </section>
-    <div class="home-actions">
+        <div class="home-actions">
       <a href="/logout" class="btn btn-secondary">
         {% if username == 'guest' %}
         התחבר או הירשם כאן!
@@ -44,7 +163,10 @@
       {% endif %}
       </a>
     </div>
-
   </main>
 </body>
 </html>
+
+
+
+

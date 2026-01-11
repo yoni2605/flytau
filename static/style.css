@@ -931,3 +931,161 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
+
+/* =========================
+   FLIGHTS LIST (cards)
+   ========================= */
+.flights-list{
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.flight-card{
+  text-decoration: none;
+  color: inherit;
+  border-radius: 18px;
+  border: 1px solid rgba(11,31,51,.10);
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 14px 40px rgba(0,0,0,.08);
+  padding: 16px 16px 14px;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  display: block;
+}
+
+.flight-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 18px 55px rgba(0,0,0,.12);
+  border-color: rgba(31,111,235,.28);
+}
+
+.flight-top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.flight-route{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 1000;
+  font-size: 18px;
+}
+
+.flight-city{ white-space: nowrap; }
+.flight-arrow{ opacity: .7; font-size: 16px; }
+
+.flight-badge{
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  border: 1px solid rgba(11,31,51,.12);
+  background: rgba(243,246,251,.95);
+  color: #0b1f33;
+}
+
+.flight-badge.ok{
+  background: rgba(240,253,244,.95);
+  border-color: rgba(134,239,172,.9);
+  color: #14532d;
+}
+
+.flight-badge.warn{
+  background: rgba(255,247,237,.95);
+  border-color: rgba(253,186,116,.9);
+  color: #7c2d12;
+}
+
+.flight-meta{
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.meta-item{
+  border: 1px solid rgba(11,31,51,.08);
+  background: rgba(243,246,251,.80);
+  border-radius: 14px;
+  padding: 10px 10px;
+}
+
+.meta-label{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.meta-val{
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 1000;
+  color: #0b1f33;
+}
+
+.flight-prices{
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.price-box{
+  border: 1px solid rgba(11,31,51,.08);
+  background: #fff;
+  border-radius: 14px;
+  padding: 10px 10px;
+}
+
+.price-label{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.price-val{
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 1000;
+}
+
+.flight-cta{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-weight: 1000;
+  color: #fff;
+  background: linear-gradient(180deg, var(--primary), var(--primary2));
+  white-space: nowrap;
+}
+
+@media (max-width: 720px){
+  .flight-meta{ grid-template-columns: 1fr; }
+  .flight-prices{ grid-template-columns: 1fr 1fr; }
+  .flight-cta{
+    grid-column: 1 / -1;
+    height: 44px;
+  }
+}
+
+/* empty */
+.empty-state{
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(11,31,51,.10);
+  background: rgba(243,246,251,.85);
+  text-align: center;
+}
+
+.empty-title{ font-weight: 1000; font-size: 18px; }
+.empty-sub{ margin-top: 6px; color: var(--muted); font-weight: 700; }
+

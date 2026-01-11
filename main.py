@@ -88,7 +88,29 @@ def insert_phones():
 @app.route('/search_order_flights')
 def search_order_flights():
     name = session.get('fullname', 'guest')
-    return render_template('search_order_flights.html', username=name, today=date.today().isoformat())
+    filtered_date = request.args.get('date') or None
+    origin = request.args.get('origin') or None
+    destination = request.args.get('destination') or None
+    status = request.args.get('status') or None
+
+    flights = get_allflights_filtered(
+        date=filtered_date,
+        origin=origin,
+        destination=destination,
+        status=status
+    )
+    origins = get_origins()
+    dests = get_dest()
+
+    return render_template(
+        'search_order_flights.html',
+        flights=flights,
+        today=date.today().isoformat(),
+        origins=origins,
+        dests=dests,
+        name=name)
+
+
 
 @app.route('/homemgr/flights')
 def flightsmgr():
@@ -118,6 +140,7 @@ def flightsmgr():
 @app.route("/homemgr/cancelflight", methods=["POST", "GET"])
 def cancelflight():
     if request.method == 'POST':
+        pass
 
 
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])
