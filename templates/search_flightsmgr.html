@@ -33,29 +33,28 @@
         </div>
 
         <div class="f-origin">
-  <label class="label">מקור</label>
-  <select class="input" name="origin">
-    <option value="">כל המקורות</option>
-    {% for o in origins %}
-      <option value="{{ o }}" {% if request.args.get('origin','') == o %}selected{% endif %}>
-        {{ o }}
-      </option>
-    {% endfor %}
-  </select>
-</div>
+          <label class="label">מקור</label>
+          <select class="input" name="origin">
+            <option value="">כל המקורות</option>
+            {% for o in origins %}
+              <option value="{{ o }}" {% if request.args.get('origin','') == o %}selected{% endif %}>
+                {{ o }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
 
-<div class="f-dest">
-  <label class="label">יעד</label>
-  <select class="input" name="destination">
-    <option value="">כל היעדים</option>
-    {% for d in dests %}
-      <option value="{{ d }}" {% if request.args.get('destination','') == d %}selected{% endif %}>
-        {{ d }}
-      </option>
-    {% endfor %}
-  </select>
-</div>
-
+        <div class="f-dest">
+          <label class="label">יעד</label>
+          <select class="input" name="destination">
+            <option value="">כל היעדים</option>
+            {% for d in dests %}
+              <option value="{{ d }}" {% if request.args.get('destination','') == d %}selected{% endif %}>
+                {{ d }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
 
         <div class="f-status">
           <label class="label">סטטוס טיסה</label>
@@ -89,6 +88,7 @@
               <th style="padding:8px; border:1px solid var(--border);">Economy</th>
               <th style="padding:8px; border:1px solid var(--border);">Business</th>
               <th style="padding:8px; border:1px solid var(--border);">סטטוס</th>
+              <th style="padding:8px; border:1px solid var(--border);">פעולות</th>
             </tr>
           </thead>
 
@@ -107,10 +107,25 @@
                   {% if f[8] is not none %}{{ f[8] }}{% else %}—{% endif %}
                 </td>
                 <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[9] }}</td>
+                  <td style="padding:8px; border:1px solid var(--border); text-align:center; white-space:nowrap;">
+                    {% if f[9] != 'Cancelled' %}
+                    <form method="post" action="/homemgr/cancelflight" style="display:inline;">
+                      <input type="hidden" name="aircraft" value="{{ f[0] }}">
+                      <input type="hidden" name="departure_date" value="{{ f[1] }}">
+                      <input type="hidden" name="departure_time" value="{{ f[2] }}">
+                      <input type="hidden" name="origin" value="{{ f[3] }}">
+                      <input type="hidden" name="destination" value="{{ f[4] }}">
+                      <button type="submit" class="btn btn-cancel">בטל</button>
+                    </form>
+                    {% else %}
+                      בוטלה
+                    {% endif %}
+                  </td>
+
               </tr>
             {% else %}
               <tr>
-                <td colspan="10" style="padding:12px; text-align:center; color:var(--muted);">
+                <td colspan="11" style="padding:12px; text-align:center; color:var(--muted);">
                   לא נמצאו טיסות
                 </td>
               </tr>

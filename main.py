@@ -115,6 +115,11 @@ def flightsmgr():
         dests=dests
     )
 
+@app.route("/homemgr/cancelflight", methods=["POST", "GET"])
+def cancelflight():
+    if request.method == 'POST':
+
+
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])
 def addemployee():
     if request.method == 'POST':
@@ -159,12 +164,17 @@ def chooseclass():
     if request.method == 'POST':
         ok, result = validate_seats(request.form.get("econrow"), request.form.get("econcol"), max_rows=30, max_cols=20)
         if not ok:
-            return render_template("addaircraft.html", error=result)
-        ok, result = validate_seats(request.form.get("buisnrow"), request.form.get("buisncol"), max_rows=30, max_cols=20)
-        if not ok:
-            return render_template("addaircraft.html", error=result)
-
-
+            return render_template("addairclass.html", error=result, size=session['newaircraft'][3])
+        if session['newaircraft'][3] == 'Large':
+            ok, result = validate_seats(request.form.get("buisnrow"), request.form.get("buisncol"), max_rows=30, max_cols=20)
+            if not ok:
+                return render_template("addairclass.html", error=result, size=session['newaircraft'][3])
+        ecorow = request.form.get("econrow")
+        ecocol = request.form.get("econcol")
+        buisnrow = request.form.get("buisnrow")
+        buiscol = request.form.get("buisncol")
+        add_aircraft(session["newaircraft"],ecorow,ecocol,buiscol,buisnrow)
+        return redirect('/homemgr/flights')
     return render_template('addairclass.html', size=session['newaircraft'][3])
 
 @app.route('/homemgr/addflight', methods=["POST", "GET"])
