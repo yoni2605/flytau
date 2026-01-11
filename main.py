@@ -139,6 +139,27 @@ def addemployee():
             return render_template('addemployee.html', good='העובד נוסף בהצלחה למערכת')
     return render_template('addemployee.html')
 
+@app.route("/homemgr/addaircraft", methods=["POST", "GET"])
+def addaircraft():
+    if request.method == 'POST':
+        id = request.form.get('id')
+        if check_aircraft(id):
+            return render_template('addaircraft.html', today=date.today().isoformat(), error='מזהה המטוס כבר קיים במערכת')
+        new_Air = []
+        new_Air.append(id)
+        new_Air.append(request.form.get('manufacturer'))
+        new_Air.append(request.form.get('parchasedate'))
+        new_Air.append(request.form.get('size'))
+        session['newaircraft'] = new_Air
+        return redirect('/homemgr/addaircraft/chooseclass')
+    return render_template('addaircraft.html', today=date.today().isoformat())
+
+@app.route("/homemgr/addaircraft/chooseclass", methods=["POST", "GET"])
+def chooseclass():
+    if request.method == 'POST':
+        pass
+    return render_template('addairclass.html', size=session['newaircraft'][3])
+
 @app.route('/homemgr/addflight', methods=["POST", "GET"])
 def addflight():
     origins = get_origins()

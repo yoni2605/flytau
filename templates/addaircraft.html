@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - הוספת אנשי צוות</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+        <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+      <nav class="admin-menu">
+  <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+  <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+  <a href="/homemgr/addaircraft" class="admin-link active">הוספת מטוס</a>
+  <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
+  <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+</nav>
+      <p class="subtitle">מלא את פרטי המטוס החדש</p>
+        {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+          {% endif %}
+
+      <form class="form" method="post" action="/homemgr/addaircraft">
+
+          <div>
+          <label class="label">מזהה הזיהוי של המטוס</label>
+          <input class="input" type="text" name="id" required>
+        </div>
+
+        <div>
+          <label class="label">בחר חברה</label>
+          <select class="input" name="manufacturer" required>
+            <option value="Boeing">Boeing</option>
+            <option value="Dassault">Dassault</option>
+              <option value="Airbus">Airbus</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="label">תאריך רכישת המטוס</label>
+          <input class="input" type="date" max="{{ today }}" name="parchasedate" required>
+        </div>
+
+        <div>
+          <label class="label">גודל המטוס</label>
+            <select class="input" name="size" required>
+            <option value="Big">גדול</option>
+            <option value="Small">קטן</option>
+          </select>
+        </div>
+
+
+        <button class="primary" type="submit">
+            המשך להגדרת מחלקות הנוסעים
+        </button>
+
+      </form>
+    </section>
+
+          <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

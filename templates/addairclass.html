@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - הוספת אנשי צוות</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+        <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+      <nav class="admin-menu">
+  <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+  <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+  <a href="/homemgr/addaircraft" class="admin-link active">הוספת מטוס</a>
+  <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
+  <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+</nav>
+      <p class="subtitle">מלא את פרטי המטוס החדש</p>
+        {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+          {% endif %}
+              {% if good %}
+        <div class="success-message">
+            {{ good }}
+        </div>
+            {% endif %}
+
+      <form class="form" method="post" action="/homemgr/addaircraft/chooseclass">
+
+          <div>
+          <label class="label">מחלקת economy</label>
+          <input class="input" type="number" name="econrow" placeholder="מספר השורות" required>
+          <input class="input" type="number" name="econcol" placeholder="מספר הטורים" required>
+        </div>
+
+        {% if size == 'Big' %}
+
+        <div>
+          <label class="label">מחלקת buisness</label>
+          <input class="input" type="number" name="buisnrow" placeholder="מספר השורות" required>
+          <input class="input" type="number" name="buiscol" placeholder="מספר הטורים" required>
+        </div>
+
+        {% endif %}
+
+
+        <button class="primary" type="submit">
+           הוסף את המטוס
+        </button>
+
+      </form>
+    </section>
+
+          <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        התנתק מהמערכת
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

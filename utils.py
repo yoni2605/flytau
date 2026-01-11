@@ -169,6 +169,12 @@ def add_employee(id, fullname, phone, startdate, role, istrained, city, street, 
         )
         return True
 
+def check_aircraft(id):
+    with db_cursor() as cursor:
+        cursor.execute('SELECT 1 FROM Air_Craft WHERE Air_Craft_ID = %s LIMIT 1', (id,))
+        result = cursor.fetchone()
+        return result is not None
+
 
 def get_origins():
     with db_cursor() as cursor:
