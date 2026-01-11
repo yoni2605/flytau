@@ -878,3 +878,24 @@ main, .home{
   background: #f3f3f3;
   color: #333;
 }
+
+.seat-block {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.seat-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.seat-field {
+  flex: 0 0 160px;
+}
+
+.seat-field .input {
+  width: 100%;
+  box-sizing: border-box;
+}
+

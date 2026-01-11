@@ -37,18 +37,33 @@
 
       <form class="form" method="post" action="/homemgr/addaircraft/chooseclass">
 
-          <div>
+        <div class="seat-block">
           <label class="label">מחלקת economy</label>
-          <input class="input" type="number" name="econrow" placeholder="מספר השורות" required>
-          <input class="input" type="number" name="econcol" placeholder="מספר הטורים" required>
+          <div class="seat-row">
+            <div class="seat-field">
+              <input class="input" type="number" name="econrow" placeholder="מספר השורות" required>
+            </div>
+            <div class="seat-field">
+              <input class="input" type="number" name="econcol" placeholder="מספר הטורים" required>
+            </div>
+          </div>
         </div>
+
+
+
 
         {% if size == 'Big' %}
 
-        <div>
+        <div class="seat-block">
           <label class="label">מחלקת buisness</label>
-          <input class="input" type="number" name="buisnrow" placeholder="מספר השורות" required>
-          <input class="input" type="number" name="buiscol" placeholder="מספר הטורים" required>
+          <div class="seat-row">
+            <div class="seat-field">
+              <input class="input" type="number" name="buisnrow" placeholder="מספר השורות" required>
+            </div>
+            <div class="seat-field">
+              <input class="input" type="number" name="buiscol" placeholder="מספר הטורים" required>
+            </div>
+          </div>
         </div>
 
         {% endif %}
