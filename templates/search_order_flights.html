@@ -53,17 +53,6 @@
           </select>
         </div>
 
-        <div class="f-status">
-          <label class="label">סטטוס טיסה</label>
-          <select class="input" name="status">
-            <option value="" {% if request.args.get('status','') == '' %}selected{% endif %}>כל הסטטוסים</option>
-            <option value="Scheduled" {% if request.args.get('status') == 'Scheduled' %}selected{% endif %}>מתוכננת</option>
-            <option value="Full" {% if request.args.get('status') == 'Full' %}selected{% endif %}>תפוסה מלאה</option>
-            <option value="Completed" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>התקיימה</option>
-            <option value="Cancelled" {% if request.args.get('status') == 'Cancelled' %}selected{% endif %}>בוטלה</option>
-          </select>
-        </div>
-
         <div class="filters-actions">
           <a class="btn btn-secondary filter-action" href="/search_order_flights">נקה</a>
           <button class="btn btn-primary filter-action" type="submit">סנן</button>
@@ -149,7 +138,7 @@
         <div class="empty-state">
           <div class="empty-title">לא נמצאו טיסות</div>
           <div class="empty-sub">נסה לשנות סינון ולחפש שוב.</div>
-          <a class="btn btn-secondary" href="/homemgr/flights">נקה סינון</a>
+          <a class="btn btn-secondary" href="/search_order_flights">נקה סינון</a>
         </div>
       {% endif %}
 

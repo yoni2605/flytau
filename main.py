@@ -1,4 +1,4 @@
-from flask import render_template, Flask, redirect, request, session
+from flask import render_template, Flask, redirect, request, session, flash
 from flask_session import Session
 from datetime import timedelta, date
 import mysql.connector
@@ -91,7 +91,7 @@ def search_order_flights():
     filtered_date = request.args.get('date') or None
     origin = request.args.get('origin') or None
     destination = request.args.get('destination') or None
-    status = request.args.get('status') or None
+    status = 'Scheduled'
 
     flights = get_allflights_filtered(
         date=filtered_date,
@@ -138,9 +138,48 @@ def flightsmgr():
     )
 
 @app.route("/homemgr/cancelflight", methods=["POST", "GET"])
-def cancelflight():
+def cancel_flight():
     if request.method == 'POST':
-        pass
+        aircraft = request.form.get("aircraft")
+        origin = request.form.get("origin")
+        destination = request.form.get("destination")
+
+        dep_date = datetime.strptime(
+            request.form.get("departure_date"), "%Y-%m-%d"
+        ).date()
+
+        dep_time = datetime.strptime(
+            request.form.get("departure_time"), "%H:%M:%S"
+        ).time()
+
+        ok, msg = cancel_flight_if_allowed(
+            aircraft, dep_date, dep_time, origin, destination
+        )
+
+        flights = get_allflights_filtered()
+        origins = get_origins()
+        dests = get_dest()
+
+        if ok:
+            return render_template(
+                "search_flightsmgr.html",
+                flights=flights,
+                origins=origins,
+                dests=dests,
+                today=date.today().isoformat(),
+                good=msg,
+                admin_name=session['namemgr']
+            )
+        else:
+            return render_template(
+                "search_flightsmgr.html",
+                flights=flights,
+                origins=origins,
+                dests=dests,
+                today=date.today().isoformat(),
+                error=msg,
+                admin_name=session['namemgr']
+            )
 
 
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])

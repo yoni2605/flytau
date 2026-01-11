@@ -24,6 +24,16 @@
         <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
         <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
       </nav>
+              {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+          {% endif %}
+              {% if good %}
+        <div class="success-message">
+            {{ good }}
+        </div>
+            {% endif %}
 
       <form class="form filters" method="get" action="/homemgr/flights">
 

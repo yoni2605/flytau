@@ -1,8 +1,9 @@
 import os
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import mysql.connector
 from dotenv import load_dotenv
+from datetime import datetime, timedelta, date, time
 
 load_dotenv()
 
@@ -33,6 +34,12 @@ def db_cursor(dictionary: bool = False):
             db.close()
 
 
+def timedelta_to_time(td: timedelta) -> time:
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    return time(hour=hours, minute=minutes, second=seconds)
 
 def new_user(fullname, email, password, passport, dob, signup_date, phones):
     with db_cursor() as cursor:
@@ -462,3 +469,72 @@ def create_flight_and_assign_crew(
             )
 
     return True
+
+
+def cancel_flight_if_allowed(
+    aircraft_id: str,
+    dep_date: date,
+    dep_time: time,
+    origin: str,
+    destination: str
+):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        # 1) Route_ID לפי מקור + יעד
+        cur.execute(
+            "SELECT Route_ID FROM route WHERE Origin=%s AND Destination=%s",
+            (origin, destination)
+        )
+        r = cur.fetchone()
+        if not r:
+            return False, "הנתיב לא נמצא"
+
+        route_id = r[0]
+
+        # 2) שליפת הטיסה
+        cur.execute(
+            """
+            SELECT Status, Dep_Date, Dep_Hour
+            FROM flight
+            WHERE Air_Craft_ID=%s
+              AND Dep_Date=%s
+              AND Dep_Hour=%s
+              AND Route_ID=%s
+            """,
+            (aircraft_id, dep_date, dep_time, route_id)
+        )
+        row = cur.fetchone()
+        if not row:
+            return False, "הטיסה לא נמצאה"
+
+        status, db_dep_date, db_dep_time = row
+
+        if status == "Canceled":
+            return False, "הטיסה כבר בוטלה"
+
+        dep_time_fixed = timedelta_to_time(db_dep_time)
+        dep_dt = datetime.combine(db_dep_date, dep_time_fixed)
+        if dep_dt - datetime.now() <= timedelta(hours=72):
+            return False, "לא ניתן לבטל טיסה פחות מ־72 שעות לפני ההמראה"
+
+        # 4) ביטול הטיסה
+        cur.execute(
+            """
+            UPDATE flight
+            SET Status='Canceled'
+            WHERE Air_Craft_ID=%s
+              AND Dep_Date=%s
+              AND Dep_Hour=%s
+              AND Route_ID=%s
+            """,
+            (aircraft_id, dep_date, dep_time, route_id)
+        )
+        db.commit()
+
+        return True, "הטיסה בוטלה בהצלחה"
+
+    finally:
+        cur.close()
+        db.close()
