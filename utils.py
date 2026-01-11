@@ -392,8 +392,6 @@ def get_employee_names_by_ids(ids):
     return [(i, name_map.get(i, "")) for i in ids]
 
 
-
-
 def create_flight_and_assign_crew(
     aircraft_id,
     origin,
