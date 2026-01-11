@@ -930,3 +930,26 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
+
+
+
+.btn.btn-cancel {
+  background: #D32F2F !important;
+  color: #ffffff !important;
+
+  padding: 4px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+
+  min-width: 60px;
+  height: auto;
+
+  box-shadow: none !important;
+}
+
+.btn.btn-cancel:hover {
+  background: #B71C1C !important;
+}
+
