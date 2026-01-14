@@ -34,7 +34,7 @@
           <select class="input" name="origin">
             <option value="">כל המקורות</option>
             {% for o in origins %}
-              <option value="{{ o }}" {% if request.args.get('origin','') == o %}selected{% endif %}>
+              <option value="{{ o }}" {% if request.args.get('origin','') == o %} selected {% endif %}>
                 {{ o }}
               </option>
             {% endfor %}
@@ -145,7 +145,7 @@
     </section>
         <div class="home-actions">
       <a href="/logout" class="btn btn-secondary">
-        {% if username == 'guest' %}
+        {% if name == 'guest' %}
         התחבר או הירשם כאן!
         {% else %}
       התנתק מהמערכת
