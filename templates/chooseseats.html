@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>בחירת מושבים</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+<main class="home">
+  <section class="brand">
+    <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+  </section>
+
+  <section class="card">
+    <h2 class="title">שלום, {{ name }}!</h2>
+          {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+      {% endif %}
+    <p class="subtitle">בחר מושבים</p>
+
+    <div class="legend">
+      פנוי = ירוק, תפוס = אפור, נבחר = כחול
+    </div>
+
+    <form method="POST" action="/search_order_flights/choosenumseat/chooseseats">
+
+      {% if business_rows > 0 %}
+      <h3 class="section-title">
+        Business Class
+      </h3>
+      {% if 'numbusi' in session %}
+      <p class="subtitle">בחר {{ session["numbusi"] }} כרטיסים</p>
+      {% endif %}
+      <table class="seats">
+        {% for r in range(1, business_rows + 1) %}
+        <tr>
+          {% for c in range(1, business_cols + 1) %}
+            {% set key = r|string + ":" + c|string %}
+            <td>
+              {% if key in taken_keys %}
+                <div class="seat taken">
+                  <span>{{ r }}-{{ c }}</span>
+                </div>
+              {% else %}
+                <label class="seat available">
+                  <input type="checkbox" name="seatsbusi" value="{{ r }}:{{ c }}">
+                  <span>{{ r }}-{{ c }}</span>
+                </label>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+
+      <div class="gap"></div>
+
+      <h3 class="section-title">
+        Economy Class
+      </h3>
+      <p class="subtitle">בחר {{ session["numecon"] }} כרטיסים</p>
+
+      <table class="seats">
+        {% for r in range(economy_start_row, economy_end_row + 1) %}
+        <tr>
+          {% for c in range(1, economy_cols + 1) %}
+            {% set key = r|string + ":" + c|string %}
+            <td>
+              {% if key in taken_keys %}
+                <div class="seat taken">
+                  <span>{{ r }}-{{ c }}</span>
+                </div>
+              {% else %}
+                <label class="seat available">
+                  <input type="checkbox" name="seatsecon" value="{{ r }}-{{ c }}">
+                  <span>{{ r }}-{{ c }}</span>
+                </label>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+
+      <div class="gap"></div>
+      <button type="submit">המשך</button>
+    </form>
+  </section>
+      <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        {% if name == 'guest' %}
+        התחבר או הירשם כאן!
+        {% else %}
+      התנתק מהמערכת
+      {% endif %}
+      </a>
+    </div>
+</main>
+</body>
+</html>

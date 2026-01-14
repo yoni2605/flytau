@@ -16,7 +16,7 @@ app.config.update(
     SESSION_FILE_DIR = '/flask_session_data',
     SESSION_PERMANENT = True,
     SESSION_PERMANENT_LIFETIME = timedelta(minutes=30),
-    SESSION_COOKIE_SRCURE = True
+    SESSION_COOKIE_SECURE = True
 )
 
 
@@ -65,15 +65,15 @@ def sign_up():
         if fullname.isalpha() and fullname.isascii():
             session['fullname'] = request.form.get('fullname')
         else:
-            return render_template('sign_up.html', error='נא להכניס שם מלא באנגלית בלבד')
-        session['email'] = request.form.get('email')
+            return render_template('sign_up.html', error='נא להכניס שם מלא באנגלית בלבד', today=date.today().isoformat())
+        session['mail'] = request.form.get('email')
         session['password'] = request.form.get('password')
         session['passport'] = request.form.get('passport')
         session['dob'] = request.form.get('dob')
         session['phonenums'] = int(request.form.get('phone_nums'))
         session['singup_date'] = date.today().isoformat()
-        if mailexists(session['email']) == True:
-            return render_template('sign_up.html', error='המייל קיים במערכת')
+        if mailexists(session['mail']) == True:
+            return render_template('sign_up.html', error='המייל קיים במערכת', today=date.today().isoformat())
         return redirect('/phonenums')
     return render_template('sign_up.html', today=date.today().isoformat())
 
@@ -109,6 +109,156 @@ def search_order_flights():
         origins=origins,
         dests=dests,
         name=name)
+
+@app.route("/search_order_flights/choosenumseat", methods=["GET", "POST"])
+def choosenumseats():
+    name = session.get('fullname', 'guest')
+
+    if request.method == "GET":
+        aircraft = request.args.get("aircraft")
+        dep_date = request.args.get("dep_date")
+        dep_time = request.args.get("dep_time")
+        origin = request.args.get("origin")
+        destination = request.args.get("destination")
+        economy_price = request.args.get("economy_price")
+        business_price = request.args.get("business_price")
+        session["chosen_flight"] = {
+            "aircraft": aircraft,
+            "dep_date": dep_date,
+            "dep_time": dep_time,
+            "origin": origin,
+            "destination": destination,
+            "economy_price": economy_price,
+            "business_price": None if business_price == "none" else business_price
+        }
+    chosen = session.get("chosen_flight", {})
+    if request.method == "POST":
+        session["numecon"] = request.form.get("seatsecon")
+        if session["chosen_flight"]["business_price"] is not None:
+            session["numbusi"] = request.form.get("seatsbusi")
+        if 'numbusi' in session:
+            if session["numecon"] == '0' and session["numbusi"] == '0':
+                return render_template('numseats.html', error='בחר לפחות כרטיס אחד', name=name, econprice=chosen.get("economy_price"), busiprice=chosen.get("business_price"))
+        else:
+            if session["numecon"] == '0':
+                return render_template('numseats.html', error='בחר לפחות כרטיס אחד', name=name, econprice=chosen.get("economy_price"), busiprice=chosen.get("business_price"))
+        return redirect("/search_order_flights/choosenumseat/chooseseats")
+    return render_template(
+        "numseats.html",
+        name=name,
+        econprice=chosen.get("economy_price"),
+        busiprice=chosen.get("business_price")
+    )
+
+@app.route("/search_order_flights/choosenumseat/chooseseats", methods=["POST", "GET"])
+def chooseseats():
+    name = session.get('fullname', 'guest')
+    business_rows = 0
+    business_cols = 0
+    if session["chosen_flight"]["business_price"] is not None:
+        business_rows, business_cols = get_class_layout(session['chosen_flight']['aircraft'], "Business")
+    economy_rows, economy_cols = get_class_layout(session['chosen_flight']['aircraft'], "Economy")
+    economy_start_row = business_rows + 1
+    economy_end_row = business_rows + economy_rows
+    taken_keys = get_taken_seat_for_flight(session['chosen_flight']['aircraft'], session['chosen_flight']['dep_date'], session['chosen_flight']['dep_date'])
+    if request.method == 'POST':
+        numecon = request.form.getlist('seatsecon')
+        numbusi = request.form.getlist('seatsbusi')
+        if len(numecon) != int(session["numecon"]):
+            return render_template("chooseseats.html",
+                        name=name,
+                        aircraft_id=session['chosen_flight']['aircraft'],
+                        dep_date=session['chosen_flight']['dep_date'],
+                        dep_hour=session['chosen_flight']['dep_time'],
+                        taken_keys=taken_keys,
+                        business_rows=business_rows,
+                        business_cols=business_cols,
+                        economy_start_row=economy_start_row,
+                        economy_end_row=economy_end_row,
+                        economy_cols=economy_cols,
+                        error=f'בחר בדיוק {session['numecon']} מושבים ב-Economy Class')
+        if 'numbusi' in session:
+            if len(numbusi) != int(session["numbusi"]):
+                return render_template("chooseseats.html",
+                                       name=name,
+                                       aircraft_id=session['chosen_flight']['aircraft'],
+                                       dep_date=session['chosen_flight']['dep_date'],
+                                       dep_hour=session['chosen_flight']['dep_time'],
+                                       taken_keys=taken_keys,
+                                       business_rows=business_rows,
+                                       business_cols=business_cols,
+                                       economy_start_row=economy_start_row,
+                                       economy_end_row=economy_end_row,
+                                       economy_cols=economy_cols,
+                                       error=f'בחר בדיוק {session['numbusi']} מושבים ב-Buisness Class')
+        session['chosenecon'] = numecon
+        session['chosenbusi'] = numbusi
+        print(numecon)
+        if name == 'guest':
+            return redirect('/guest_details')
+        return redirect('/submitorder')
+    return render_template(
+        "chooseseats.html",
+        name=name,
+        aircraft_id=session['chosen_flight']['aircraft'],
+        dep_date=session['chosen_flight']['dep_date'],
+        dep_hour=session['chosen_flight']['dep_time'],
+        taken_keys=taken_keys,
+        business_rows=business_rows,
+        business_cols=business_cols,
+        economy_start_row=economy_start_row,
+        economy_end_row=economy_end_row,
+        economy_cols=economy_cols,
+    )
+
+@app.route('/guest_details', methods=["POST", "GET"])
+def guestdetails():
+    name = session.get('fullname', 'guest')
+    if request.method == 'POST':
+        fullname = request.form.get('fullname').replace(" ", "")
+        if fullname.isalpha() and fullname.isascii():
+            session['guestname'] = request.form.get('fullname')
+        else:
+            return render_template('guest_details.html', error='נא להכניס שם מלא באנגלית בלבד', name=name)
+        session['guestemail'] = request.form.get('email')
+        session['guestphonenums'] = int(request.form.get('phone_nums'))
+        if mailexists(session['guestemail']) == True:
+            return render_template('guest_details.html', error='המייל קיים במערכת', name=name)
+        return redirect('/phoneguest')
+    return render_template('guest_details.html', name=name)
+
+@app.route('/phoneguest', methods=["POST", "GET"])
+def phoneguest():
+    if request.method == 'POST':
+        session['phones'] = request.form.getlist('phones')
+        return redirect('/submitorder')
+    return render_template('phoneguest.html', phonenums = session['guestphonenums'])
+
+@app.route('/submitorder', methods=["POST", "GET"])
+def submitorder():
+    if 'fullname' in session:
+        name = session['fullname']
+    else:
+        name = session['guestname']
+    flightdetails = session["chosen_flight"]
+    econseats = session['chosenecon']
+    busiseats = session['chosenbusi']
+    totalprice = 0
+    if econseats is not None:
+        totalprice += len(econseats) * float(flightdetails["economy_price"])
+    if busiseats and flightdetails['business_price'] is not None:
+        totalprice += len(busiseats) * float(flightdetails['business_price'])
+    if request.method == 'POST':
+        if 'guestemail' in session:
+            new_guest(session['guestemail'], session['guestname'], session['phones'])
+            orderid = insert_order_and_tickets(session['guestemail'], flightdetails['aircraft'], flightdetails['dep_date'], flightdetails['dep_time'], econseats, busiseats, flightdetails['economy_price'], flightdetails['business_price'], totalprice)
+        elif "mail" in session:
+            orderid = insert_order_and_tickets(session['mail'], flightdetails['aircraft'], flightdetails['dep_date'], flightdetails['dep_time'], econseats, busiseats, flightdetails['economy_price'], flightdetails['business_price'], totalprice)
+        return render_template('approved.html', orderid=orderid, name=name)
+    return render_template('submitorder.html', flightdetails=flightdetails, totalprice=totalprice, econseats=econseats, busiseats=busiseats)
+
+
+
 
 
 
@@ -224,11 +374,11 @@ def addaircraft():
 @app.route("/homemgr/addaircraft/chooseclass", methods=["POST", "GET"])
 def chooseclass():
     if request.method == 'POST':
-        ok, result = validate_seats(request.form.get("econrow"), request.form.get("econcol"), max_rows=30, max_cols=20)
+        ok, result = validate_seats(request.form.get("econrow"), request.form.get("econcol"), max_rows=25, max_cols=10)
         if not ok:
             return render_template("addairclass.html", error=result, size=session['newaircraft'][3])
         if session['newaircraft'][3] == 'Large':
-            ok, result = validate_seats(request.form.get("buisnrow"), request.form.get("buisncol"), max_rows=30, max_cols=20)
+            ok, result = validate_seats(request.form.get("buisnrow"), request.form.get("buisncol"), max_rows=5, max_cols=5)
             if not ok:
                 return render_template("addairclass.html", error=result, size=session['newaircraft'][3])
         ecorow = request.form.get("econrow")
@@ -363,6 +513,11 @@ def submitflight():
 def logout():
     session.clear()
     return redirect('/')
+
+@app.before_request
+def auto_update_flight_status():
+    if request.path.startswith(("/search_order_flights", "/homemgr")):
+        update_flights_status()
 
 
 if __name__ == '__main__':

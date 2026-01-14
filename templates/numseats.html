@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>בחירת כמות מושבים</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h2 class="title">שלום, {{ name }}!</h2>
+      <p class="subtitle">בחר כמות מושבים רצויה</p>
+      {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+      {% endif %}
+      <form class="form" method="post" action="/search_order_flights/choosenumseat">
+
+        <div>
+            <label class="label">מספר כרטיס Economy <br> ₪{{ econprice }}</label>
+            <select class="input" name="seatsecon" required>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+
+            </select>
+        </div>
+        {% if busiprice is not none %}
+          <div>
+            <label class="label">מספר כרטיס business <br> ₪{{ busiprice }}</label>
+            <select class="input" name="seatsbusi" required>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+
+            </select>
+        </div>
+          {% endif %}
+
+        <button class="primary" type="submit" >
+          לבחירת המושבים
+        </button>
+
+      </form>
+    </section>
+
+    <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        {% if name == 'guest' %}
+        התחבר או הירשם כאן!
+        {% else %}
+      התנתק מהמערכת
+      {% endif %}
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

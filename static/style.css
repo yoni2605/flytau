@@ -1108,3 +1108,73 @@ input[type="number"]::-webkit-outer-spin-button {
 .btn.btn-cancel:hover {
   background: #B71C1C !important;
 }
+
+/* ===== Seat Selection ===== */
+
+.legend {
+  text-align: center;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.section-title {
+  text-align: center;
+  margin: 14px 0 8px;
+}
+
+.gap {
+  height: 18px;
+}
+
+.seats {
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.seats td {
+  padding: 6px;
+}
+
+.seat {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 56px;
+  height: 44px;
+  border-radius: 8px;
+  font-weight: 700;
+  user-select: none;
+}
+
+.seat.available {
+  background: #2fbf71;
+  color: #fff;
+  cursor: pointer;
+}
+
+.seat.taken {
+  background: #b9b9b9;
+  color: #555;
+  cursor: not-allowed;
+}
+
+/* hide checkbox */
+.seat input {
+  display: none;
+}
+
+/* label inner span should fill */
+.seat span {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* selected seat */
+.seat.available input:checked + span {
+  background: #1e90ff;
+  color: #fff;
+  border-radius: 8px;
+}

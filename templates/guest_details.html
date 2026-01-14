@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>הרשמה</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>בחירת מושבים</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
 </head>
-<body>
-<div class="home">
-  <div class="brand">
-    <img src="/static/logo.png" alt="לוגו" class="logo">
-  </div>
 
-  <div class="card">
-    <h1 class="title">יצירת חשבון חדש</h1>
-    <p class="subtitle">נא למלא את הפרטים להמשך</p>
-      {% if error %}
+<body>
+<main class="home">
+  <section class="brand">
+    <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+  </section>
+
+  <section class="card">
+    <h2 class="title">שלום, {{ name }}!</h2>
+          {% if error %}
           <div class="error-message">
-            {{error}}
+              {{error}}
           </div>
       {% endif %}
-    <form class="form" action="/signup" method="post">
+    <p class="subtitle">מלא פרטי נוסע</p>
+      <form class="form" method="post" action="/guest_details">
       <div>
         <label class="label" for="fullName">שם מלא באנגלית</label>
         <input class="input" type="text" name="fullname" id="fullName" required>
@@ -29,11 +30,6 @@
       <div>
         <label class="label" for="email">כתובת מייל</label>
         <input class="input" type="email" name="email" id="email" placeholder="example@mail.com" required>
-      </div>
-
-      <div>
-        <label class="label" for="password">סיסמה</label>
-        <input class="input" type="password" name="password" id="password" required>
       </div>
 
       <div>
@@ -53,10 +49,16 @@
       <button type="submit" class="primary">המשך</button>
 
     </form>
-    <a class="ghost" style="margin-top:8px;" href="/">
-        חזרה לדף הבית
+  </section>
+        <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">
+        {% if name == 'guest' %}
+        התחבר או הירשם כאן!
+        {% else %}
+      התנתק מהמערכת
+      {% endif %}
       </a>
-  </div>
-</div>
+    </div>
+</main>
 </body>
 </html>

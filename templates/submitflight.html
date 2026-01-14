@@ -74,7 +74,11 @@
 
       <div class="home-actions">
       <a href="/logout" class="btn btn-secondary">
-        התנתק מהמערכת
+        {% if name == 'guest' %}
+        התחבר או הירשם כאן!
+        {% else %}
+      התנתק מהמערכת
+      {% endif %}
       </a>
     </div>
   </main>

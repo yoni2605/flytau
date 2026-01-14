@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הרשמה</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+<body>
+<div class="home">
+  <div class="brand">
+    <img src="/static/logo.png" alt="לוגו" class="logo">
+  </div>
+
+  <div class="card">
+    <h1 class="title">פרטי ההזמנה</h1>
+    <div class="flight-details" style="margin-top:14px; margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
+        <p><strong>מטוס</strong> {{ flightdetails['aircraft'] }}</p>
+        <p><strong>תאריך המראה:</strong> {{ flightdetails['dep_date'] }}</p>
+        <p><strong>שעת המראה:</strong> {{ flightdetails['dep_time'] }}</p>
+        <p><strong>מקור:</strong> {{ flightdetails['origin'] }}</p>
+        <p><strong>יעד:</strong> {{ flightdetails['destination'] }}</p>
+        <p><strong>מושבים שנבחרו</strong>
+          <p>Economy
+          {% if econseats %}
+          {% for s in econseats %}
+            {{ s[0] }}
+          {% endfor %}
+          {% endif %}
+          </p>
+            <p>Business
+          {% if busiseats %}
+          {% for s in busiseats %}
+            {{ s }}
+          {% endfor %}
+          {% endif %}
+          </p>
+        </p
+          <div>
+          <label class="label"> סה"כ לתשלום {{ totalprice }}</label>
+        </div>
+      <form class="form" method="post" action="/submitorder">
+          <button class="primary" type="submit">
+          לתשלום וסיום הזמנה
+        </button>
+
+        </form>
+
+
+  </div>
+</div>
+</body>
+</html>

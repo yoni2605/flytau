@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - אישור ותמחור טיסה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h3 class="title">שלום, {{ name }}<br> הזמנתך בוצעה בהצלחה! <br> מספר ההזמנה הוא {{ orderid }}</h3>
+
+    </section>
+
+      <div class="home-actions">
+      <a href="/search_order_flights" class="btn btn-secondary">
+      </a>
+    </div>
+  </main>
+</body>
+</html>

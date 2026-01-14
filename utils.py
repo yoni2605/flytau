@@ -1,12 +1,10 @@
 import os
 from contextlib import contextmanager
-from datetime import datetime, timedelta, time
 import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, date, time
 
 load_dotenv()
-
 
 def get_db():
     return mysql.connector.connect(
@@ -33,6 +31,12 @@ def db_cursor(dictionary: bool = False):
         finally:
             db.close()
 
+def mysql_time_to_time(t):
+    if isinstance(t, time):
+        return t.replace(microsecond=0)
+    if isinstance(t, timedelta):
+        return timedelta_to_time(t).replace(microsecond=0)
+    raise TypeError(f"Unsupported TIME type from DB: {type(t)}")
 
 def timedelta_to_time(td: timedelta) -> time:
     total_seconds = int(td.total_seconds())
@@ -482,7 +486,6 @@ def cancel_flight_if_allowed(
     cur = db.cursor()
 
     try:
-        # 1) Route_ID לפי מקור + יעד
         cur.execute(
             "SELECT Route_ID FROM route WHERE Origin=%s AND Destination=%s",
             (origin, destination)
@@ -493,7 +496,6 @@ def cancel_flight_if_allowed(
 
         route_id = r[0]
 
-        # 2) שליפת הטיסה
         cur.execute(
             """
             SELECT Status, Dep_Date, Dep_Hour
@@ -519,7 +521,6 @@ def cancel_flight_if_allowed(
         if dep_dt - datetime.now() <= timedelta(hours=72):
             return False, "לא ניתן לבטל טיסה פחות מ־72 שעות לפני ההמראה"
 
-        # 4) ביטול הטיסה
         cur.execute(
             """
             UPDATE flight
@@ -538,3 +539,153 @@ def cancel_flight_if_allowed(
     finally:
         cur.close()
         db.close()
+
+
+def get_class_layout(aircraft_id, seat_class):
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT Row_Num, Col_Num
+            FROM AirCraft_Class
+            WHERE Air_Craft_ID = %s AND Class = %s
+            """,
+            (aircraft_id, seat_class)
+        )
+        row = cursor.fetchone()
+    if row is None:
+        raise ValueError(f"No layout found for aircraft {aircraft_id} and class {seat_class}")
+    return int(row[0]), int(row[1])
+
+def get_taken_seat_for_flight(aircraft_id, dep_date, dep_hour):
+    db = get_db()
+    with db.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT t.Chosen_Row_Num, t.Chosen_Col_Num
+            FROM Tickets t
+            JOIN Flight_Order fo
+              ON fo.Order_ID = t.Order_ID
+            WHERE t.Air_Craft_ID = %s
+              AND t.Dep_Date = %s
+              AND t.Dep_Hour = %s
+              AND fo.Order_status = 'Active'
+            """,
+            (aircraft_id, dep_date, dep_hour)
+        )
+        rows = cursor.fetchall()
+
+    return {f"{int(r)}:{int(c)}" for (r, c) in rows}
+
+def get_all_flights_not_cancelled():
+    with db_cursor() as cursor:
+        query = """
+            SELECT
+                f.Air_Craft_ID,
+                f.Route_ID,
+                f.Dep_Date,
+                f.Dep_Hour,
+                r.Duration,
+                f.Status
+            FROM Flight f
+            JOIN Route r ON r.Route_ID = f.Route_ID
+            WHERE f.Status <> 'Canceled'
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    flights = []
+    for air, route_id, dep_date, dep_hour, duration, status in rows:
+        flights.append({
+            "aircraft": air,
+            "route_id": route_id,
+            "dep_date": dep_date,
+            "dep_time": mysql_time_to_time(dep_hour),
+            "duration": float(duration),
+            "status": status
+        })
+    return flights
+
+def update_flight_status(aircraft, route_id, dep_date, dep_time, new_status):
+    with db_cursor() as cursor:
+        query = """
+            UPDATE Flight
+            SET Status = %s
+            WHERE Air_Craft_ID = %s
+              AND Route_ID = %s
+              AND Dep_Date = %s
+              AND Dep_Hour = %s
+        """
+        cursor.execute(query, (new_status, aircraft, route_id, dep_date, dep_time))
+
+
+def update_flights_status():
+    now = datetime.now()
+    flights = get_all_flights_not_cancelled()
+    for f in flights:
+        if f["status"] == "Canceled":
+            continue
+        dep_dt = datetime.combine(f["dep_date"], f["dep_time"])
+        landing_dt = dep_dt + timedelta(hours=f["duration"])
+        if now >= landing_dt:
+            new_status = "Completed"
+        else:
+            continue
+        if new_status != f["status"]:
+            update_flight_status(
+                f["aircraft"],
+                f["route_id"],
+                f["dep_date"],
+                f["dep_time"],
+                new_status
+            )
+
+def new_guest(email, fullname, phones):
+    with db_cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO Customer(Email, Full_Name_Eng) VALUES (%s, %s)",
+            (email, fullname)
+        )
+        for phone in phones:
+            cursor.execute(
+                "INSERT INTO Phone_Numbers(Cust_Email, Phone_Num) VALUES(%s, %s)",
+                (email, phone)
+            )
+
+def insert_order_and_tickets(email, aircraft_id, dep_date, dep_hour, econ_seats, busi_seats, econ_price, busi_price, total_paid):
+    with db_cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO Flight_Order (Email, Order_Date, Order_status, Total_Paid) VALUES (%s, CURDATE(), %s, %s)",
+            (email, "Active", total_paid)
+        )
+        order_id = cursor.lastrowid
+        for seat in econ_seats:
+            row, col = seat.split("-")
+            cursor.execute(
+                "INSERT INTO Tickets (Order_ID, Air_Craft_ID, Dep_Date, Dep_Hour, Chosen_Row_Num, Chosen_Col_Num, Price_Paid) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    order_id,
+                    aircraft_id,
+                    dep_date,
+                    dep_hour,
+                    row,
+                    col,
+                    econ_price
+                )
+            )
+        for seat in busi_seats:
+            row, col = seat.split("-")
+            cursor.execute(
+                "INSERT INTO Tickets (Order_ID, Air_Craft_ID, Dep_Date, Dep_Hour, Chosen_Row_Num, Chosen_Col_Num, Price_Paid) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (
+                    order_id,
+                    aircraft_id,
+                    dep_date,
+                    dep_hour,
+                    row,
+                    col,
+                    busi_price
+                )
+            )
+        return order_id
+
+
