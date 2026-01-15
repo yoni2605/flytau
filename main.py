@@ -160,7 +160,7 @@ def chooseseats():
     economy_rows, economy_cols = get_class_layout(session['chosen_flight']['aircraft'], "Economy")
     economy_start_row = business_rows + 1
     economy_end_row = business_rows + economy_rows
-    taken_keys = get_taken_seat_for_flight(session['chosen_flight']['aircraft'], session['chosen_flight']['dep_date'], session['chosen_flight']['dep_date'])
+    taken_keys = get_taken_seat_for_flight(session['chosen_flight']['aircraft'], session['chosen_flight']['dep_date'], session['chosen_flight']['dep_time'])
     if request.method == 'POST':
         numecon = request.form.getlist('seatsecon')
         numbusi = request.form.getlist('seatsbusi')
@@ -176,7 +176,7 @@ def chooseseats():
                         economy_start_row=economy_start_row,
                         economy_end_row=economy_end_row,
                         economy_cols=economy_cols,
-                        error=f'בחר בדיוק {session['numecon']} מושבים ב-Economy Class')
+                        error=f"בחר בדיוק{ session['numecon'] }  מושבים ב-Economy Clas ")
         if 'numbusi' in session:
             if len(numbusi) != int(session["numbusi"]):
                 return render_template("chooseseats.html",
@@ -190,7 +190,7 @@ def chooseseats():
                                        economy_start_row=economy_start_row,
                                        economy_end_row=economy_end_row,
                                        economy_cols=economy_cols,
-                                       error=f'בחר בדיוק {session['numbusi']} מושבים ב-Buisness Class')
+                                       error=f"בחר בדיוק  {session['numbusi']} מושבים ב-Buisness Class")
         session['chosenecon'] = numecon
         session['chosenbusi'] = numbusi
         print(numecon)

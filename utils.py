@@ -567,8 +567,8 @@ def get_taken_seat_for_flight(aircraft_id, dep_date, dep_hour):
             JOIN Flight_Order fo
               ON fo.Order_ID = t.Order_ID
             WHERE t.Air_Craft_ID = %s
-              AND t.Dep_Date = %s
-              AND t.Dep_Hour = %s
+              AND t.Dep_Date = DATE(%s)
+              AND t.Dep_Hour = TIME(%s)
               AND fo.Order_status = 'Active'
             """,
             (aircraft_id, dep_date, dep_hour)
