@@ -14,6 +14,20 @@
     </section>
 
     <section class="card">
+      <div class="card-actions">
+        {% if 'mail' in session %}
+  <a class="card-action" href="/custorder_details" aria-label="היסטוריית רכישות">
+    <span class="card-action-icon">🧾</span>
+    <span class="card-action-text">להיסטוריית רכישות לחץ כאן</span>
+  </a>
+      {% else %}
+  <a class="card-action" href="/guestorder" aria-label="הזמנות פעילות">
+    <span class="card-action-icon">📦</span>
+    <span class="card-action-text">להזמנות פעילות לחץ כאן</span>
+  </a>
+        {% endif %}
+        <br>
+</div>
       <h2 class="title">שלום, {{ name }}!</h2>
       <p class="subtitle">צפייה וסינון טיסות במערכת</p>
 
@@ -76,7 +90,6 @@
 
           <a class="flight-card" role="listitem"
             href="/search_order_flights/choosenumseat?aircraft={{ f[0] }}&dep_date={{ f[1] }}&dep_time={{ f[2] }}&origin={{ f[3] }}&destination={{ f[4] }}&economy_price={{ f[7] }}&business_price={{ f[8] if f[8] else 'none' }}">
-
 
               <div class="flight-top">
                 <div class="flight-route">

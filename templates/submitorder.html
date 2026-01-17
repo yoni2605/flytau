@@ -19,25 +19,28 @@
         <p><strong>תאריך המראה:</strong> {{ flightdetails['dep_date'] }}</p>
         <p><strong>שעת המראה:</strong> {{ flightdetails['dep_time'] }}</p>
         <p><strong>מקור:</strong> {{ flightdetails['origin'] }}</p>
-        <p><strong>יעד:</strong> {{ flightdetails['destination'] }}</p>
+        <p><strong>יעד:</strong> {{ flightdetails['destination'] }}</p><br>
         <p><strong>מושבים שנבחרו</strong>
-          <p>Economy
           {% if econseats %}
+            <p>
           {% for s in econseats %}
-            {{ s[0] }}
+            {{ s }},
           {% endfor %}
+        <strong>Economy</strong>
           {% endif %}
           </p>
-            <p>Business
           {% if busiseats %}
+        <p>
           {% for s in busiseats %}
-            {{ s }}
+            {{ s }},
           {% endfor %}
+            <strong>Business</strong>
           {% endif %}
+
           </p>
-        </p
+        <br>
           <div>
-          <label class="label"> סה"כ לתשלום {{ totalprice }}</label>
+              <label class="label"><strong> סה"כ לתשלום</strong> {{ totalprice }} ש"ח</label>
         </div>
       <form class="form" method="post" action="/submitorder">
           <button class="primary" type="submit">

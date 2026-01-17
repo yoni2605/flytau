@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>פרטי הזמנה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <p class="subtitle">מלא מספר הזמנה ומייל של מבצע ההזמנה</p>
+        {% if error %}
+          <div class="error-message">
+              {{error}}
+          </div>
+          {% endif %}
+
+      <form class="form" method="post" action="/guestorder">
+
+        <div>
+          <label class="label">מזהה הזמנה</label>
+          <input class="input" type="number" name="id" required>
+        </div>
+
+        <div>
+          <label class="label">מייל</label>
+          <input class="input" type="text" name="mail" required>
+        </div>
+
+        <button class="primary" type="submit">
+          לצפייה בפרטים
+        </button>
+
+      </form>
+    </section>
+
+          <div class="home-actions">
+      <a href="/search_order_flights" class="btn btn-secondary">
+        חזור לחיפוש טיסות
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

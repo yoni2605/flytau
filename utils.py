@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, date, time
+from decimal import Decimal, ROUND_HALF_UP
 
 load_dotenv()
 
@@ -532,6 +533,29 @@ def cancel_flight_if_allowed(
             """,
             (aircraft_id, dep_date, dep_time, route_id)
         )
+
+        cur.execute(
+            """
+            SELECT DISTINCT Order_ID
+            FROM Tickets
+            WHERE Air_Craft_ID=%s
+              AND Dep_Date=%s
+              AND Dep_Hour=%s
+            """,
+            (aircraft_id, dep_date, dep_time)
+        )
+        orders = [row[0] for row in cur.fetchall()]
+
+        if orders:
+            format_strings = ','.join(['%s'] * len(orders))
+            cur.execute(
+                f"""
+                        UPDATE Flight_Order
+                        SET Order_Status='System_Canceled', Total_Paid=0
+                        WHERE Order_ID IN ({format_strings})
+                        """,
+                tuple(orders)
+            )
         db.commit()
 
         return True, "הטיסה בוטלה בהצלחה"
@@ -688,4 +712,226 @@ def insert_order_and_tickets(email, aircraft_id, dep_date, dep_hour, econ_seats,
             )
         return order_id
 
+def update_flights_fully_booked():
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            UPDATE Flight f
+            JOIN (
+                SELECT
+                    f2.Air_Craft_ID,
+                    f2.Dep_Date,
+                    f2.Dep_Hour,
+                    (
+                        SELECT COALESCE(SUM(acc.Row_Num * acc.Col_Num), 0)
+                        FROM AirCraft_Class acc
+                        WHERE acc.Air_Craft_ID = f2.Air_Craft_ID
+                    ) AS capacity,
+                    (
+                        SELECT COUNT(*)
+                        FROM Tickets t
+                        WHERE t.Air_Craft_ID = f2.Air_Craft_ID
+                          AND t.Dep_Date    = f2.Dep_Date
+                          AND t.Dep_Hour    = f2.Dep_Hour
+                    ) AS total_tickets,
+                    (
+                        SELECT COUNT(*)
+                        FROM Tickets t
+                        JOIN Flight_Order fo ON fo.Order_ID = t.Order_ID
+                        WHERE t.Air_Craft_ID = f2.Air_Craft_ID
+                          AND t.Dep_Date    = f2.Dep_Date
+                          AND t.Dep_Hour    = f2.Dep_Hour
+                          AND fo.Order_status = 'Active'
+                    ) AS active_tickets
+                FROM Flight f2
+                WHERE f2.Status NOT IN ('Canceled', 'Completed', 'FULLY BOOKED')
+            ) x
+              ON x.Air_Craft_ID = f.Air_Craft_ID
+             AND x.Dep_Date     = f.Dep_Date
+             AND x.Dep_Hour     = f.Dep_Hour
+            SET f.Status = 'FULLY BOOKED'
+            WHERE x.capacity > 0
+              AND x.total_tickets = x.capacity
+              AND x.active_tickets = x.total_tickets
+              AND f.Status NOT IN ('Canceled', 'Completed', 'FULLY BOOKED')
+            """
+        )
 
+def get_order_with_tickets(order_id: int, email: str):
+    with db_cursor(dictionary=True) as cursor:
+        cursor.execute(
+            """
+            SELECT
+                fo.Order_ID,
+                fo.Email,
+                fo.Order_Date,
+                fo.Order_status,
+                fo.Total_Paid
+            FROM Flight_Order fo
+            WHERE fo.Order_ID = %s AND fo.Email = %s
+            """,
+            (order_id, email),
+        )
+        order = cursor.fetchone()
+        if not order:
+            raise ValueError("Order not found for this email")
+        cursor.execute(
+            """
+            SELECT
+                t.Order_ID,
+                t.Air_Craft_ID,
+                t.Dep_Date,
+                t.Dep_Hour,
+                t.Chosen_Row_Num,
+                t.Chosen_Col_Num,
+                t.Price_Paid,
+
+                f.Route_ID,
+                f.Arrival_Date,
+                f.Arrival_Time,
+                f.Status AS Flight_Status,
+
+                r.Origin,
+                r.Destination,
+                r.Duration
+            FROM Tickets t
+            LEFT JOIN Flight f
+              ON f.Air_Craft_ID = t.Air_Craft_ID
+             AND f.Dep_Date    = t.Dep_Date
+             AND f.Dep_Hour    = t.Dep_Hour
+            LEFT JOIN Route r
+              ON r.Route_ID = f.Route_ID
+            WHERE t.Order_ID = %s
+            ORDER BY t.Dep_Date, t.Dep_Hour, t.Chosen_Row_Num, t.Chosen_Col_Num
+            """,
+            (order_id,),
+        )
+        tickets = cursor.fetchall()
+    for tk in tickets:
+        if tk.get("Dep_Hour") is not None:
+            tk["Dep_Hour"] = mysql_time_to_time(tk["Dep_Hour"])
+        if tk.get("Arrival_Time") is not None:
+            tk["Arrival_Time"] = mysql_time_to_time(tk["Arrival_Time"])
+
+    return order, tickets
+
+def order_exists_for_email(order_id: int, email: str):
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT 1
+            FROM Flight_Order
+            WHERE Order_ID = %s AND Email = %s
+            LIMIT 1
+            """,
+            (order_id, email)
+        )
+        return cursor.fetchone() is not None
+
+
+def cancel_order_by_policy(order_id: int, email: str):
+    with db_cursor(dictionary=True) as cursor:
+        cursor.execute(
+            """
+            SELECT Order_ID, Email, Order_status, Total_Paid
+            FROM Flight_Order
+            WHERE Order_ID=%s AND Email=%s
+            """,
+            (order_id, email)
+        )
+        order = cursor.fetchone()
+        if not order:
+            return False, "הזמנה לא נמצאה עבור המייל שסופק"
+
+        if order["Order_status"] != "Active":
+            return False, "אפשר לבטל רק הזמנות פעילות (Active)"
+
+        cursor.execute(
+            """
+            SELECT MIN(TIMESTAMP(t.Dep_Date, t.Dep_Hour)) AS nearest_dep
+            FROM Tickets t
+            WHERE t.Order_ID = %s
+            """,
+            (order_id,)
+        )
+        row = cursor.fetchone()
+        nearest_dep = row["nearest_dep"]
+
+        if nearest_dep is None:
+            return False, "אין כרטיסים להזמנה זו ולכן אין מה לבטל"
+
+        cursor.execute(
+            """
+            SELECT TIMESTAMPDIFF(HOUR, NOW(), %s) AS hours_left
+            """,
+            (nearest_dep,)
+        )
+        hours_left = cursor.fetchone()["hours_left"]
+
+        if hours_left is None or hours_left <= 36:
+            return False, "לא ניתן לבטל הזמנה 36 שעות (או פחות) לפני הטיסה"
+
+        total_paid = Decimal(str(order["Total_Paid"]))
+        new_total = (total_paid * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        cursor.execute(
+            """
+            UPDATE Flight_Order
+            SET Order_status = 'Customer_Canceled',
+                Total_Paid   = %s
+            WHERE Order_ID = %s AND Email = %s
+            """,
+            (str(new_total), order_id, email)
+        )
+
+        return True, f"ההזמנה בוטלה בהצלחה. נגבתה עמלה של 5% והסכום עודכן ל-₪{new_total}."
+
+
+def get_custorders(email: str, status_filter=None):
+    with db_cursor(dictionary=True) as cursor:
+        if status_filter:
+            cursor.execute(
+                """
+                SELECT Order_ID, Email, Order_Date, Order_status, Total_Paid
+                FROM Flight_Order
+                WHERE Email = %s AND Order_status = %s
+                ORDER BY Order_Date DESC, Order_ID DESC
+                """,
+                (email, status_filter)
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT Order_ID, Email, Order_Date, Order_status, Total_Paid
+                FROM Flight_Order
+                WHERE Email = %s
+                ORDER BY Order_Date DESC, Order_ID DESC
+                """,
+                (email,)
+            )
+
+        orders = cursor.fetchall()
+
+        for order in orders:
+            cursor.execute(
+                """
+                SELECT
+                    t.Order_ID, t.Air_Craft_ID, t.Dep_Date, t.Dep_Hour,
+                    t.Chosen_Row_Num, t.Chosen_Col_Num, t.Price_Paid,
+                    f.Status AS Flight_Status, f.Arrival_Date, f.Arrival_Time,
+                    r.Origin, r.Destination
+                FROM Tickets t
+                JOIN Flight f
+                  ON t.Air_Craft_ID = f.Air_Craft_ID
+                 AND t.Dep_Date = f.Dep_Date
+                 AND t.Dep_Hour = f.Dep_Hour
+                JOIN Route r
+                  ON f.Route_ID = r.Route_ID
+                WHERE t.Order_ID = %s
+                ORDER BY t.Dep_Date, t.Dep_Hour, t.Chosen_Row_Num, t.Chosen_Col_Num
+                """,
+                (order["Order_ID"],)
+            )
+            order["tickets"] = cursor.fetchall()
+
+        return orders

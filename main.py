@@ -91,7 +91,7 @@ def search_order_flights():
     filtered_date = request.args.get('date') or None
     origin = request.args.get('origin') or None
     destination = request.args.get('destination') or None
-    status = 'Scheduled'
+    status = 'Scheduled' or None
 
     flights = get_allflights_filtered(
         date=filtered_date,
@@ -176,7 +176,7 @@ def chooseseats():
                         economy_start_row=economy_start_row,
                         economy_end_row=economy_end_row,
                         economy_cols=economy_cols,
-                        error=f"בחר בדיוק{ session['numecon'] }  מושבים ב-Economy Clas ")
+                        error=f"בחר בדיוק {session['numecon']} מושבים ב-Economy Class")
         if 'numbusi' in session:
             if len(numbusi) != int(session["numbusi"]):
                 return render_template("chooseseats.html",
@@ -190,10 +190,9 @@ def chooseseats():
                                        economy_start_row=economy_start_row,
                                        economy_end_row=economy_end_row,
                                        economy_cols=economy_cols,
-                                       error=f"בחר בדיוק  {session['numbusi']} מושבים ב-Buisness Class")
+                                       error=f" בחר בדיוק {session['numbusi']} מושבים ב-Buisness Class")
         session['chosenecon'] = numecon
         session['chosenbusi'] = numbusi
-        print(numecon)
         if name == 'guest':
             return redirect('/guest_details')
         return redirect('/submitorder')
@@ -219,13 +218,13 @@ def guestdetails():
         if fullname.isalpha() and fullname.isascii():
             session['guestname'] = request.form.get('fullname')
         else:
-            return render_template('guest_details.html', error='נא להכניס שם מלא באנגלית בלבד', name=name)
+            return render_template('guest_details.html', error='נא להכניס שם מלא באנגלית בלבד', name=name, today=date.today().isoformat())
         session['guestemail'] = request.form.get('email')
         session['guestphonenums'] = int(request.form.get('phone_nums'))
         if mailexists(session['guestemail']) == True:
-            return render_template('guest_details.html', error='המייל קיים במערכת', name=name)
+            return render_template('guest_details.html', error='המייל קיים במערכת', name=name, today=date.today().isoformat())
         return redirect('/phoneguest')
-    return render_template('guest_details.html', name=name)
+    return render_template('guest_details.html', name=name, today=date.today().isoformat())
 
 @app.route('/phoneguest', methods=["POST", "GET"])
 def phoneguest():
@@ -244,6 +243,8 @@ def submitorder():
     econseats = session['chosenecon']
     busiseats = session['chosenbusi']
     totalprice = 0
+    print(session['chosenecon'])
+    print(session['chosenbusi'])
     if econseats is not None:
         totalprice += len(econseats) * float(flightdetails["economy_price"])
     if busiseats and flightdetails['business_price'] is not None:
@@ -257,13 +258,49 @@ def submitorder():
         return render_template('approved.html', orderid=orderid, name=name)
     return render_template('submitorder.html', flightdetails=flightdetails, totalprice=totalprice, econseats=econseats, busiseats=busiseats)
 
+@app.route("/guestorder", methods=["GET", "POST"])
+def guestorder():
+    name = session.get('fullname', 'guest')
+    if request.method == 'POST':
+        session['orderid'] = request.form.get('id')
+        session['ordermail'] = request.form.get('mail')
+        if order_exists_for_email(int(session['orderid']), session['ordermail']):
+            session['order'], session['tickets'] = get_order_with_tickets(int(session['orderid']), session['ordermail'])
+            return redirect('/cancel_order')
+        else:
+            return render_template('guestorder.html', error="ההזמנה לא נמצאה במערכת")
+    return render_template("guestorder.html")
 
+@app.route("/cancel_order", methods=["GET", "POST"])
+def guestorder_details():
+    name = session.get('fullname', 'guest')
+    if request.method == 'POST':
+        cancelled, massege = cancel_order_by_policy(int(session['orderid']),session['ordermail'])
+        if cancelled is True:
+            return render_template('guestorder_details.html',order=session['order'], tickets=session['tickets'], name=name, good=massege)
+        else:
+            return render_template('guestorder_details.html',order=session['order'], tickets=session['tickets'], name=name, error=massege)
+    return render_template('guestorder_details.html', order=session['order'], tickets=session['tickets'], name=name)
 
-
-
+@app.route('/custorder_details', methods=["GET", "POST"])
+def custorder_details():
+    name = session.get('fullname', 'guest')
+    if 'mail' not in session:
+        return redirect('/')
+    email = session['mail']
+    name = session.get('fullname', 'guest')
+    status_filter = request.args.get('status')
+    orders = get_custorders(email, status_filter)
+    if request.method == "POST":
+        order_id = request.form.get('order_id')
+        cancelled, message = cancel_order_by_policy(int(order_id), email)
+        orders = get_custorders(email, status_filter)
+        return render_template("custorder_details.html",orders=orders,name=name,good=message if cancelled else None,error=None if cancelled else message)
+    return render_template("custorder_details.html", orders=orders,name=name)
 
 @app.route('/homemgr/flights')
 def flightsmgr():
+    aircraft_added = request.args.get("aircraft_added")
     filtered_date = request.args.get('date') or None
     origin = request.args.get('origin') or None
     destination = request.args.get('destination') or None
@@ -284,7 +321,8 @@ def flightsmgr():
         admin_name=session['namemgr'],
         today=date.today().isoformat(),
         origins=origins,
-        dests=dests
+        dests=dests,
+        good = "המטוס נוסף בהצלחה למערכת" if aircraft_added else None
     )
 
 @app.route("/homemgr/cancelflight", methods=["POST", "GET"])
@@ -386,7 +424,7 @@ def chooseclass():
         buisnrow = request.form.get("buisnrow")
         buiscol = request.form.get("buisncol")
         add_aircraft(session["newaircraft"],ecorow,ecocol,buiscol,buisnrow)
-        return redirect('/homemgr/flights')
+        return redirect('/homemgr/flights?aircraft_added=1')
     return render_template('addairclass.html', size=session['newaircraft'][3])
 
 @app.route('/homemgr/addflight', methods=["POST", "GET"])
@@ -518,6 +556,7 @@ def logout():
 def auto_update_flight_status():
     if request.path.startswith(("/search_order_flights", "/homemgr")):
         update_flights_status()
+        update_flights_fully_booked()
 
 
 if __name__ == '__main__':

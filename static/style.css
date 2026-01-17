@@ -1172,9 +1172,58 @@ input[type="number"]::-webkit-outer-spin-button {
   align-items: center;
 }
 
-/* selected seat */
 .seat.available input:checked + span {
   background: #1e90ff;
   color: #fff;
   border-radius: 8px;
+}
+
+.card{ position: relative; }
+
+.card-action{
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  left: auto;
+
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  color: var(--primary2);
+
+  background: rgba(255,255,255,.78);
+  border: 1px solid rgba(20,79,206,.18);
+  box-shadow: 0 12px 26px rgba(0,0,0,.08);
+
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.card-action:hover{
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 16px 34px rgba(0,0,0,.12);
+  transform: translateY(-1px);
+}
+
+
+.btn.btn-cancel.btn-cancel-lg{
+  height: 52px !important;
+  min-width: 260px !important;
+  padding: 0 22px !important;
+  border-radius: 16px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 12px 26px rgba(0,0,0,.08) !important;
+}
+
+.btn.btn-cancel.btn-cancel-lg:hover{
+  box-shadow: 0 16px 34px rgba(0,0,0,.12) !important;
+  transform: translateY(-1px);
 }

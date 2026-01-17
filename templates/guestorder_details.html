@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>פרטי הזמנה</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h2 class="title">שלום, {{ name }}!</h2>
+      <p class="subtitle">פרטי ההזמנה והכרטיסים המשויכים אליה</p>
+
+      {% if error %}
+        <div class="error-message">{{ error }}</div>
+      {% endif %}
+      {% if good %}
+        <div class="success-message">{{ good }}</div>
+      {% endif %}
+
+      <div class="meta-item" style="margin-top:18px;">
+        <div class="meta-label">פרטי הזמנה</div>
+
+        <div class="flight-meta" style="margin-top:10px;">
+          <div class="meta-item">
+            <div class="meta-label">מזהה הזמנה</div>
+            <div class="meta-val">#{{ order.Order_ID }}</div>
+          </div>
+
+          <div class="meta-item">
+            <div class="meta-label">מייל</div>
+            <div class="meta-val">{{ order.Email }}</div>
+          </div>
+
+          <div class="meta-item">
+            <div class="meta-label">סטטוס</div>
+            <div class="meta-val">{{ order.Order_status }}</div>
+          </div>
+
+          <div class="meta-item">
+            <div class="meta-label">תאריך הזמנה</div>
+            <div class="meta-val">{{ order.Order_Date }}</div>
+          </div>
+
+          <div class="meta-item">
+            <div class="meta-label">סה״כ לתשלום</div>
+            <div class="meta-val">₪{{ order.Total_Paid }}</div>
+          </div>
+
+          <div class="meta-item">
+            <div class="meta-label">כמות כרטיסים</div>
+            <div class="meta-val">{{ tickets|length }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider">כרטיסים בהזמנה</div>
+
+      {% if tickets and tickets|length > 0 %}
+        <div class="flights-list" role="list">
+          {% for t in tickets %}
+            <div class="flight-card" role="listitem" style="cursor:default;">
+              <div class="flight-top">
+                <div class="flight-route">
+                  <div class="flight-city">{{ t.Origin or "—" }}</div>
+                  <div class="flight-arrow">⟵</div>
+                  <div class="flight-city">{{ t.Destination or "—" }}</div>
+                </div>
+
+                <div class="flight-badge
+                  {% if t.Flight_Status in ['Scheduled','Completed'] %} ok
+                  {% elif t.Flight_Status in ['FULLY BOOKED','Canceled'] %} warn
+                  {% endif %}">
+                  {{ t.Flight_Status or "—" }}
+                </div>
+              </div>
+
+              <div class="flight-meta">
+                <div class="meta-item">
+                  <div class="meta-label">מטוס</div>
+                  <div class="meta-val">#{{ t.Air_Craft_ID }}</div>
+                </div>
+
+                <div class="meta-item">
+                  <div class="meta-label">יציאה</div>
+                  <div class="meta-val">{{ t.Dep_Date }} {{ t.Dep_Hour }}</div>
+                </div>
+
+                <div class="meta-item">
+                  <div class="meta-label">הגעה</div>
+                  <div class="meta-val">
+                    {% if t.Arrival_Date %}
+                      {{ t.Arrival_Date }} {{ t.Arrival_Time }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flight-prices" style="grid-template-columns: 1fr 1fr auto;">
+                <div class="price-box">
+                  <div class="price-label">מושב</div>
+                  <div class="price-val">{{ t.Chosen_Row_Num }}-{{ t.Chosen_Col_Num }}</div>
+                </div>
+
+                <div class="price-box">
+                  <div class="price-label">מחיר</div>
+                  <div class="price-val">₪{{ t.Price_Paid }}</div>
+                </div>
+
+                <div class="flight-cta" style="background: rgba(243,246,251,.95); color: var(--primary2); border:1px solid rgba(20,79,206,.18);">
+                  כרטיס #{{ loop.index }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-title">אין כרטיסים להזמנה זו</div>
+          <div class="empty-sub">אם זה לא צפוי, נסה לחפש שוב.</div>
+        </div>
+      {% endif %}
+
+      <div class="divider">פעולות</div>
+
+      <form method="post" action="/cancel_order" style="margin-top: 0;">
+        <input type="hidden" name="order_id" value="{{ order.Order_ID }}">
+        <input type="hidden" name="email" value="{{ order.Email }}">
+
+        <button class="btn btn-cancel btn-cancel-lg" type="submit"
+            onclick="return confirm('האם אתה בטוח שברצונך לבטל את ההזמנה? במסגרת הביטול תחויב ב5% מעלות הכרטיסים בפועל, ביטול ההזמנה יתאפשר עבור כרטיסים לטיסות שמועדן מעל ל-36 שעות ');">
+              בטל הזמנה
+        </button>
+      </form>
+
+      <div class="home-actions" style="margin-top:18px;">
+        <a class="btn btn-secondary" href="/search_order_flights">חזרה לחיפוש טיסות</a>
+      </div>
+
+    </section>
+  </main>
+</body>
+</html>

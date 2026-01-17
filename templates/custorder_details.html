@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>היסטוריית רכישות</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card">
+      <h2 class="title">שלום, {{ name }}!</h2>
+      <p class="subtitle">פירוט כל ההזמנות שבוצעו</p>
+
+      {% if error %}
+        <div class="error-message">{{ error }}</div>
+      {% endif %}
+      {% if good %}
+        <div class="success-message">{{ good }}</div>
+      {% endif %}
+
+      <form class="form filters" method="get" action="/custorder_details" style="margin-bottom:15px;">
+        <div class="f-status">
+          <label class="label" for="status">סטטוס הזמנה</label>
+          <select class="input" name="status" id="status" onchange="this.form.submit()">
+            <option value="" {% if request.args.get('status','') == '' %}selected{% endif %}>הכל</option>
+            <option value="Active" {% if request.args.get('status')=='Active' %}selected{% endif %}>פעילה</option>
+            <option value="Completed" {% if request.args.get('status')=='Completed' %}selected{% endif %}>בוצעה</option>
+            <option value="Customer_Canceled" {% if request.args.get('status')=='Customer_Canceled' %}selected{% endif %}>ביטול לקוח</option>
+            <option value="System_Canceled" {% if request.args.get('status')=='System_Canceled' %}selected{% endif %}>ביטול מערכת</option>
+          </select>
+        </div>
+          <a class="btn btn-secondary filter-action" href="/custorder_details">הצג הכל</a>
+        </div>
+      </form>
+
+      {% if orders and orders|length > 0 %}
+        {% for order in orders %}
+          <div class="order-card" style="margin-top:18px; border:1px solid #ddd; padding:15px; border-radius:8px; background:#f9f9f9;">
+
+            <div class="meta-label" style="font-weight:bold; margin-bottom:10px;">פרטי הזמנה #{{ order.Order_ID }}</div>
+
+
+            <div class="flight-meta" style="display:flex; gap:20px; flex-wrap:wrap;">
+              <div class="meta-item">
+                  <div class="meta-label">תאריך הזמנה</div>
+                  <div class="meta-val">{{ order.Order_Date }}</div>
+              </div>
+
+              <div class="meta-item">
+                  <div class="meta-label">סה״כ לתשלום</div>
+                  <div class="meta-val">₪{{ order.Total_Paid }}</div>
+              </div>
+              <div class="meta-item">
+                  <div class="meta-label">כמות כרטיסים</div>
+                  <div class="meta-val">{{ order.tickets|length }}</div>
+              </div>
+                <div class="meta-item">
+                    <div class = "meta-label">סטטוס</div>
+                    <div class="meta-val">
+                        {% if order.Order_status == 'Active' %}פעילה
+                        {% elif order.Order_status == 'Completed' %}בוצעה
+                        {% elif order.Order_status == 'Customer_Canceled' %}בוטלה על ידי לקוח
+                        {% elif order.Order_status == 'System_Canceled' %}בוטלה על ידי מערכת
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider" style="margin:10px 0;">כרטיסים בהזמנה</div>
+
+            {% if order.tickets and order.tickets|length > 0 %}
+              <div class="flights-list" role="list">
+                {% for t in order.tickets %}
+                  <div class="flight-card" role="listitem" style="cursor:default; margin-bottom:10px; padding:10px; border:1px solid #ccc; border-radius:6px; background:#fff;">
+                    <div class="flight-top">
+                      <div class="flight-route">
+                        <div class="flight-city">{{ t.Origin or "—" }}</div>
+                        <div class="flight-arrow">⟵</div>
+                        <div class="flight-city">{{ t.Destination or "—" }}</div>
+                      </div>
+                      <div class="flight-badge {% if order.Order_status == 'Active' %} ok
+                      {% else %} warn {% endif %}">{{ order.Order_status }}</div>
+                    </div>
+
+                    <div class="flight-meta">
+                      <div class="meta-item"><div class="meta-label">מטוס</div><div class="meta-val">#{{ t.Air_Craft_ID }}</div></div>
+                      <div class="meta-item"><div class="meta-label">יציאה</div><div class="meta-val">{{ t.Dep_Date }} {{ t.Dep_Hour }}</div></div>
+                      <div class="meta-item"><div class="meta-label">הגעה</div><div class="meta-val">{% if t.Arrival_Date %}{{ t.Arrival_Date }} {{ t.Arrival_Time }}{% else %}—{% endif %}</div></div>
+                      <div class="meta-item"><div class="meta-label">מושב</div><div class="meta-val">{{ t.Chosen_Row_Num }}-{{ t.Chosen_Col_Num }}</div></div>
+                      <div class="meta-item"><div class="meta-label">מחיר</div><div class="meta-val">₪{{ t.Price_Paid }}</div></div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="empty-state" style="margin:10px 0;">
+                <div class="empty-title">אין כרטיסים להזמנה זו</div>
+              </div>
+            {% endif %}
+
+            {% if order.Order_status == 'Active' %}
+              <form method="post" action="/custorder_details" style="margin-top:10px;">
+                <input type="hidden" name="order_id" value="{{ order.Order_ID }}">
+                <button class="btn btn-cancel btn-cancel-lg" type="submit"
+                  onclick="return confirm('האם אתה בטוח שברצונך לבטל את כל ההזמנה?');">
+                  ביטול כל ההזמנה
+                </button>
+              </form>
+            {% endif %}
+
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-title">אין הזמנות להציג</div>
+        </div>
+      {% endif %}
+
+      <div class="home-actions" style="margin-top:18px;">
+        <a class="btn btn-secondary" href="/search_order_flights">חזרה לחיפוש טיסות</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
