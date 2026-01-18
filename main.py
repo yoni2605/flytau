@@ -495,7 +495,7 @@ def chooseaircrafts():
         return redirect('/homemgr/addflight/choosecrew')
     allaircrafts = get_specific_aricrafts(session['origin'], session['dest'], session['depdate'], session['deptime'])
     if len(allaircrafts) == 0:
-        return render_template('chooseaircrafts.html', aircrafts=allaircrafts, error='אין מטוסיםם זמינים שיכולים לבצע את הטיסה המבוקשת')
+        return render_template('chooseaircrafts.html', aircrafts=allaircrafts, error='אין מטוסים זמינים שיכולים לבצע את הטיסה המבוקשת')
     return render_template('chooseaircrafts.html', aircrafts=allaircrafts)
 
 # עובדים אפשריים לבחירה לפי התנאים הרלוונטים בעת הוספת טיסה
