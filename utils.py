@@ -4,6 +4,9 @@ import mysql.connector
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, date, time
 from decimal import Decimal, ROUND_HALF_UP
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 load_dotenv()
 
@@ -18,7 +21,7 @@ def get_db():
         connection_timeout=5
     )
 
-
+# מנהל הקשר שמספק מצביע למסד נתונים ומבצע שמירה וסגירה אוטומטית של החיבור
 @contextmanager
 def db_cursor(dictionary: bool = False):
     db = get_db()
@@ -32,6 +35,7 @@ def db_cursor(dictionary: bool = False):
         finally:
             db.close()
 
+#ממיר ערך זמן שמגיע מהמסד לאובייקט זמן
 def mysql_time_to_time(t):
     if isinstance(t, time):
         return t.replace(microsecond=0)
@@ -39,6 +43,7 @@ def mysql_time_to_time(t):
         return timedelta_to_time(t).replace(microsecond=0)
     raise TypeError(f"Unsupported TIME type from DB: {type(t)}")
 
+#time to timedelta
 def timedelta_to_time(td: timedelta) -> time:
     total_seconds = int(td.total_seconds())
     hours = total_seconds // 3600
@@ -46,6 +51,7 @@ def timedelta_to_time(td: timedelta) -> time:
     seconds = total_seconds % 60
     return time(hour=hours, minute=minutes, second=seconds)
 
+# יוצר משתמש חדש ומוסיף את המידע שלו לטבלאות הלקוח והטלפונים
 def new_user(fullname, email, password, passport, dob, signup_date, phones):
     with db_cursor() as cursor:
         cursor.execute(
@@ -62,14 +68,14 @@ def new_user(fullname, email, password, passport, dob, signup_date, phones):
                 (email, phone)
             )
 
-
+# בודק אם כתובת מייל כבר קיימת במסד
 def mailexists(mail):
     with db_cursor() as cursor:
         cursor.execute("SELECT email FROM customer")
         allmails = [row[0] for row in cursor.fetchall()]
         return str(mail) in allmails
 
-
+# בודק אם לקוח עם מייל וסיסמה קיימים במסד
 def checkcust(mail, password):
     with db_cursor() as cursor:
         cursor.execute(
@@ -78,14 +84,14 @@ def checkcust(mail, password):
         )
         return cursor.fetchone() is not None
 
-
+# מחזיר את השם המלא של הלקוח לפי מייל
 def getname(mail):
     with db_cursor() as cursor:
         cursor.execute("SELECT Full_Name_Eng from customer WHERE Email = %s", (mail,))
         result = cursor.fetchone()
     return result[0] if result else None
 
-
+# בודק אם מנהל עם מזהה וסיסמה קיימים במסד
 def checkmgr(id, password):
     with db_cursor() as cursor:
         cursor.execute(
@@ -94,20 +100,21 @@ def checkmgr(id, password):
         )
         return cursor.fetchone() is not None
 
-
+# מחזיר את השם המלא של המנהל לפי מזהה
 def getmgr(id):
     with db_cursor() as cursor:
         cursor.execute("SELECT Full_Name_Heb from employee WHERE id = %s", (id,))
         result = cursor.fetchone()
     return result[0] if result else None
 
-
+# בודק אם השם כתוב בעברית בלבד
 def is_hebrew_name(name):
     for char in name:
         if not ("א" <= char <= "ת" or char == " "):
             return False
     return True
 
+# מחזיר את כל הטיסות עם אפשרות לסינון לפי תאריך, מקור, יעד או סטטוס
 def get_allflights_filtered(date=None, origin=None, destination=None, status=None):
     query = """
         SELECT
@@ -126,31 +133,27 @@ def get_allflights_filtered(date=None, origin=None, destination=None, status=Non
         WHERE 1=1
     """
     params = []
-
     if date:
         query += " AND f.Dep_Date = %s"
         params.append(date)
-
     if origin:
         query += " AND r.Origin LIKE %s"
         params.append(f"%{origin}%")
-
     if destination:
         query += " AND r.Destination LIKE %s"
         params.append(f"%{destination}%")
-
     if status:
         query += " AND f.Status = %s"
         params.append(status)
-
-    query += " ORDER BY f.Dep_Date, f.Dep_Hour"
-
+    query += """
+        ORDER BY
+            TIMESTAMP(f.Dep_Date, f.Dep_Hour) ASC
+    """
     with db_cursor() as cursor:
         cursor.execute(query, tuple(params))
         return cursor.fetchall()
 
-
-
+#הוספת עובדים למערכת
 def add_employee(id, fullname, phone, startdate, role, istrained, city, street, housenum):
     with db_cursor() as cursor:
         cursor.execute("SELECT 1 FROM employee WHERE id = %s", (id,))
@@ -183,12 +186,14 @@ def add_employee(id, fullname, phone, startdate, role, istrained, city, street, 
         )
         return True
 
+# בודק אם מטוס עם מזהה נתון קיים במסד
 def check_aircraft(id):
     with db_cursor() as cursor:
         cursor.execute('SELECT 1 FROM Air_Craft WHERE Air_Craft_ID = %s LIMIT 1', (id,))
         result = cursor.fetchone()
         return result is not None
 
+# בודק אם מספר שורות וטורים תקינים במסגרת המקסימום
 def validate_seats(rows, cols, max_rows, max_cols):
     if rows is None or cols is None:
         return False, "חסרים ערכים"
@@ -203,6 +208,7 @@ def validate_seats(rows, cols, max_rows, max_cols):
         return False, f"מקסימום {max_rows} שורות ו-{max_cols} טורים"
     return True, (rows, cols)
 
+#הוספת מטוס לבסיס הנתונים
 def add_aircraft(aircraft, econrow, econcol, buiscol=None, buisrow=None):
     with db_cursor() as cursor:
         cursor.execute('INSERT INTO Air_Craft VALUES(%s, %s, %s, %s)',(aircraft[0],aircraft[2],aircraft[1],aircraft[3]))
@@ -210,25 +216,23 @@ def add_aircraft(aircraft, econrow, econcol, buiscol=None, buisrow=None):
         if buiscol != None:
             cursor.execute('INSERT INTO AirCraft_Class VALUES(%s, %s, %s, %s)', (aircraft[0], "Business", buisrow, buiscol))
 
-
-
+# מחזיר את כל שדות המוצא השונים מהטבלה
 def get_origins():
     with db_cursor() as cursor:
         cursor.execute("SELECT DISTINCT(origin) FROM route")
         return [row[0] for row in cursor.fetchall()]
 
-
+#מחזיר את כל היעדים השונים מהטבלה
 def get_dest():
     with db_cursor() as cursor:
         cursor.execute("SELECT DISTINCT(destination) FROM route")
         return [row[0] for row in cursor.fetchall()]
 
-
-
+#חישוב זמן הגעה לפי משך טיסה זמן המראה תאריך המראה
 def calculate_arrival_datetime(dep_date, dep_hour, duration):
     return datetime.combine(dep_date, dep_hour) + timedelta(hours=duration)
 
-
+# מחזיר את הנתיב והמשך הטיסה לפי מקור ויעד
 def get_route_by_origin_dest(origin, destination):
     with db_cursor() as cursor:
         cursor.execute(
@@ -237,6 +241,7 @@ def get_route_by_origin_dest(origin, destination):
         )
         return cursor.fetchone()
 
+# מחזיר מטוסים זמינים לטיסה מסוימת לפי מקור, יעד, תאריך ושעה
 def get_specific_aricrafts(origin, dest, depdate, deptime):
     route = get_route_by_origin_dest(origin, dest)
     if isinstance(depdate, str):
@@ -276,22 +281,20 @@ def get_specific_aricrafts(origin, dest, depdate, deptime):
         )
         return cursor.fetchall()
 
-
-
+# מחזיר יצרן וגודל של מטוס לפי מזהה
 def getaircraft_byid(id):
     with db_cursor() as cursor:
         cursor.execute("SELECT Manufacturer, Size FROM Air_Craft WHERE Air_Craft_ID = %s", (id,))
         return cursor.fetchone()
 
+# מחזיר טייסים זמינים לטיסה לפי תאריך, שעה ומרחק הטיסה
 def get_available_pilots(origin, depdate, deptime, is_long_flight):
     if isinstance(depdate, str):
         depdate = datetime.strptime(depdate, "%Y-%m-%d").date()
     if isinstance(deptime, str):
         fmt = "%H:%M:%S" if len(deptime) == 8 else "%H:%M"
         deptime = datetime.strptime(deptime, fmt).time()
-
     dep_dt = datetime.combine(depdate, deptime)
-
     with db_cursor() as cursor:
         cursor.execute(
             """
@@ -336,16 +339,14 @@ def get_available_pilots(origin, depdate, deptime, is_long_flight):
         )
         return cursor.fetchall()
 
-
+# מחזיר דיילים זמינים לטיסה לפי תאריך, שעה ומרחק הטיסה
 def get_available_attendants(origin, depdate, deptime, is_long_flight):
     if isinstance(depdate, str):
         depdate = datetime.strptime(depdate, "%Y-%m-%d").date()
     if isinstance(deptime, str):
         fmt = "%H:%M:%S" if len(deptime) == 8 else "%H:%M"
         deptime = datetime.strptime(deptime, fmt).time()
-
     dep_dt = datetime.combine(depdate, deptime)
-
     with db_cursor() as cursor:
         cursor.execute(
             """
@@ -390,6 +391,7 @@ def get_available_attendants(origin, depdate, deptime, is_long_flight):
         )
         return cursor.fetchall()
 
+# מחזיר שמות עובדים לפי רשימת מזהים
 def get_employee_names_by_ids(ids):
     if not ids:
         return []
@@ -403,7 +405,7 @@ def get_employee_names_by_ids(ids):
     name_map = {r[0]: r[1] for r in rows}
     return [(i, name_map.get(i, "")) for i in ids]
 
-
+# יוצר טיסה ומקצה לה צוות טייסים ודיילים
 def create_flight_and_assign_crew(
     aircraft_id,
     origin,
@@ -432,7 +434,6 @@ def create_flight_and_assign_crew(
     arr_dt = dep_dt + timedelta(hours=duration)
     arrival_date = arr_dt.date()
     arrival_time = arr_dt.time().replace(second=0, microsecond=0)
-
     with db_cursor() as cursor:
         cursor.execute(
             """
@@ -472,10 +473,9 @@ def create_flight_and_assign_crew(
                 """,
                 (aid, aircraft_id, dep_date, dep_time, "Flight_Attendant")
             )
-
     return True
 
-
+#ביטול טיסה במסגרת הגבלות כולל בדיקות
 def cancel_flight_if_allowed(
     aircraft_id: str,
     dep_date: date,
@@ -485,7 +485,6 @@ def cancel_flight_if_allowed(
 ):
     db = get_db()
     cur = db.cursor()
-
     try:
         cur.execute(
             "SELECT Route_ID FROM route WHERE Origin=%s AND Destination=%s",
@@ -494,9 +493,7 @@ def cancel_flight_if_allowed(
         r = cur.fetchone()
         if not r:
             return False, "הנתיב לא נמצא"
-
         route_id = r[0]
-
         cur.execute(
             """
             SELECT Status, Dep_Date, Dep_Hour
@@ -513,15 +510,12 @@ def cancel_flight_if_allowed(
             return False, "הטיסה לא נמצאה"
 
         status, db_dep_date, db_dep_time = row
-
         if status == "Canceled":
             return False, "הטיסה כבר בוטלה"
-
         dep_time_fixed = timedelta_to_time(db_dep_time)
         dep_dt = datetime.combine(db_dep_date, dep_time_fixed)
         if dep_dt - datetime.now() <= timedelta(hours=72):
             return False, "לא ניתן לבטל טיסה פחות מ־72 שעות לפני ההמראה"
-
         cur.execute(
             """
             UPDATE flight
@@ -533,7 +527,6 @@ def cancel_flight_if_allowed(
             """,
             (aircraft_id, dep_date, dep_time, route_id)
         )
-
         cur.execute(
             """
             SELECT DISTINCT Order_ID
@@ -545,7 +538,6 @@ def cancel_flight_if_allowed(
             (aircraft_id, dep_date, dep_time)
         )
         orders = [row[0] for row in cur.fetchall()]
-
         if orders:
             format_strings = ','.join(['%s'] * len(orders))
             cur.execute(
@@ -557,14 +549,12 @@ def cancel_flight_if_allowed(
                 tuple(orders)
             )
         db.commit()
-
         return True, "הטיסה בוטלה בהצלחה"
-
     finally:
         cur.close()
         db.close()
 
-
+# מחזיר את מספר השורות והטורים של מחלקת מושבים במטוס
 def get_class_layout(aircraft_id, seat_class):
     db = get_db()
     with db.cursor() as cursor:
@@ -581,6 +571,7 @@ def get_class_layout(aircraft_id, seat_class):
         raise ValueError(f"No layout found for aircraft {aircraft_id} and class {seat_class}")
     return int(row[0]), int(row[1])
 
+# מחזיר את כל המושבים שכבר תפוסים בטיסה מסוימת
 def get_taken_seat_for_flight(aircraft_id, dep_date, dep_hour):
     db = get_db()
     with db.cursor() as cursor:
@@ -598,9 +589,9 @@ def get_taken_seat_for_flight(aircraft_id, dep_date, dep_hour):
             (aircraft_id, dep_date, dep_hour)
         )
         rows = cursor.fetchall()
-
     return {f"{int(r)}:{int(c)}" for (r, c) in rows}
 
+# מחזיר את כל הטיסות שלא בוטלו עם פרטי הטיסה
 def get_all_flights_not_cancelled():
     with db_cursor() as cursor:
         query = """
@@ -629,6 +620,7 @@ def get_all_flights_not_cancelled():
         })
     return flights
 
+#מעדכן סטטוס טיסה
 def update_flight_status(aircraft, route_id, dep_date, dep_time, new_status):
     with db_cursor() as cursor:
         query = """
@@ -640,8 +632,7 @@ def update_flight_status(aircraft, route_id, dep_date, dep_time, new_status):
               AND Dep_Hour = %s
         """
         cursor.execute(query, (new_status, aircraft, route_id, dep_date, dep_time))
-
-
+#עדכון סטטוס טיסה
 def update_flights_status():
     now = datetime.now()
     flights = get_all_flights_not_cancelled()
@@ -662,7 +653,7 @@ def update_flights_status():
                 f["dep_time"],
                 new_status
             )
-
+#מוסיף אורח לבסיס נתונים
 def new_guest(email, fullname, phones):
     with db_cursor() as cursor:
         cursor.execute(
@@ -674,7 +665,7 @@ def new_guest(email, fullname, phones):
                 "INSERT INTO Phone_Numbers(Cust_Email, Phone_Num) VALUES(%s, %s)",
                 (email, phone)
             )
-
+# יוצר הזמנה ומכניס את כרטיסי הנוסעים עם מחירים מתאימים
 def insert_order_and_tickets(email, aircraft_id, dep_date, dep_hour, econ_seats, busi_seats, econ_price, busi_price, total_paid):
     with db_cursor() as cursor:
         cursor.execute(
@@ -711,7 +702,7 @@ def insert_order_and_tickets(email, aircraft_id, dep_date, dep_hour, econ_seats,
                 )
             )
         return order_id
-
+#שינוי סטטוס לתפוסה מלאה
 def update_flights_fully_booked():
     with db_cursor() as cursor:
         cursor.execute(
@@ -756,7 +747,7 @@ def update_flights_fully_booked():
               AND f.Status NOT IN ('Canceled', 'Completed', 'FULLY BOOKED')
             """
         )
-
+# מחזיר הזמנה עם כל הכרטיסים והפרטים שלהם לפי מזהה מייל והזמנה
 def get_order_with_tickets(order_id: int, email: str):
     with db_cursor(dictionary=True) as cursor:
         cursor.execute(
@@ -778,27 +769,14 @@ def get_order_with_tickets(order_id: int, email: str):
         cursor.execute(
             """
             SELECT
-                t.Order_ID,
-                t.Air_Craft_ID,
-                t.Dep_Date,
-                t.Dep_Hour,
-                t.Chosen_Row_Num,
-                t.Chosen_Col_Num,
-                t.Price_Paid,
-
-                f.Route_ID,
-                f.Arrival_Date,
-                f.Arrival_Time,
-                f.Status AS Flight_Status,
-
-                r.Origin,
-                r.Destination,
-                r.Duration
+                t.Order_ID, t.Air_Craft_ID,t.Dep_Date,t.Dep_Hour,t.Chosen_Row_Num,t.Chosen_Col_Num,t.Price_Paid,
+                f.Route_ID,f.Arrival_Date,f.Arrival_Time,f.Status AS Flight_Status,
+                r.Origin,r.Destination,r.Duration
             FROM Tickets t
             LEFT JOIN Flight f
               ON f.Air_Craft_ID = t.Air_Craft_ID
-             AND f.Dep_Date    = t.Dep_Date
-             AND f.Dep_Hour    = t.Dep_Hour
+             AND f.Dep_Date = t.Dep_Date
+             AND f.Dep_Hour = t.Dep_Hour
             LEFT JOIN Route r
               ON r.Route_ID = f.Route_ID
             WHERE t.Order_ID = %s
@@ -812,9 +790,9 @@ def get_order_with_tickets(order_id: int, email: str):
             tk["Dep_Hour"] = mysql_time_to_time(tk["Dep_Hour"])
         if tk.get("Arrival_Time") is not None:
             tk["Arrival_Time"] = mysql_time_to_time(tk["Arrival_Time"])
-
     return order, tickets
 
+# בדיקה אם הזמנה קיימת לפי מייל ומזהה הזמנה
 def order_exists_for_email(order_id: int, email: str):
     with db_cursor() as cursor:
         cursor.execute(
@@ -828,7 +806,7 @@ def order_exists_for_email(order_id: int, email: str):
         )
         return cursor.fetchone() is not None
 
-
+#ביטול טיסה לפי פרמטרים
 def cancel_order_by_policy(order_id: int, email: str):
     with db_cursor(dictionary=True) as cursor:
         cursor.execute(
@@ -842,10 +820,8 @@ def cancel_order_by_policy(order_id: int, email: str):
         order = cursor.fetchone()
         if not order:
             return False, "הזמנה לא נמצאה עבור המייל שסופק"
-
         if order["Order_status"] != "Active":
             return False, "אפשר לבטל רק הזמנות פעילות (Active)"
-
         cursor.execute(
             """
             SELECT MIN(TIMESTAMP(t.Dep_Date, t.Dep_Hour)) AS nearest_dep
@@ -856,10 +832,8 @@ def cancel_order_by_policy(order_id: int, email: str):
         )
         row = cursor.fetchone()
         nearest_dep = row["nearest_dep"]
-
         if nearest_dep is None:
             return False, "אין כרטיסים להזמנה זו ולכן אין מה לבטל"
-
         cursor.execute(
             """
             SELECT TIMESTAMPDIFF(HOUR, NOW(), %s) AS hours_left
@@ -867,13 +841,10 @@ def cancel_order_by_policy(order_id: int, email: str):
             (nearest_dep,)
         )
         hours_left = cursor.fetchone()["hours_left"]
-
         if hours_left is None or hours_left <= 36:
             return False, "לא ניתן לבטל הזמנה 36 שעות (או פחות) לפני הטיסה"
-
         total_paid = Decimal(str(order["Total_Paid"]))
         new_total = (total_paid * Decimal("0.05")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
         cursor.execute(
             """
             UPDATE Flight_Order
@@ -883,35 +854,33 @@ def cancel_order_by_policy(order_id: int, email: str):
             """,
             (str(new_total), order_id, email)
         )
-
         return True, f"ההזמנה בוטלה בהצלחה. נגבתה עמלה של 5% והסכום עודכן ל-₪{new_total}."
 
-
+# מחזיר את כל ההזמנות של לקוח רשום
 def get_custorders(email: str, status_filter=None):
     with db_cursor(dictionary=True) as cursor:
         if status_filter:
             cursor.execute(
                 """
-                SELECT Order_ID, Email, Order_Date, Order_status, Total_Paid
-                FROM Flight_Order
+                SELECT o.Order_ID, o.Email, o.Order_Date, o.Order_status, o.Total_Paid
+                FROM Flight_Order as o JOIN Tickets as t ON t.Order_ID = o.Order_ID
                 WHERE Email = %s AND Order_status = %s
-                ORDER BY Order_Date DESC, Order_ID DESC
+                ORDER BY t.Dep_Date ASC, t.Dep_Hour ASC
                 """,
                 (email, status_filter)
             )
         else:
             cursor.execute(
                 """
-                SELECT Order_ID, Email, Order_Date, Order_status, Total_Paid
-                FROM Flight_Order
-                WHERE Email = %s
-                ORDER BY Order_Date DESC, Order_ID DESC
+                SELECT o.Order_ID, o.Email, o.Order_Date, o.Order_status, o.Total_Paid
+                FROM Flight_Order o
+                JOIN Tickets t ON t.Order_ID = o.Order_ID
+                WHERE o.Email = %s
+                ORDER BY t.Dep_Date ASC, t.Dep_Hour ASC
                 """,
                 (email,)
             )
-
         orders = cursor.fetchall()
-
         for order in orders:
             cursor.execute(
                 """
@@ -933,5 +902,158 @@ def get_custorders(email: str, status_filter=None):
                 (order["Order_ID"],)
             )
             order["tickets"] = cursor.fetchall()
-
         return orders
+
+# מוודא שקיימת תיקיית דוחות ומחזיר את הנתיב שלה
+def ensure_reports_dir(app) -> str:
+    reports_dir = os.path.join(app.static_folder, "reports")
+    os.makedirs(reports_dir, exist_ok=True)
+    return reports_dir
+
+# יוצר גרף קצב ביטולים לפי חודש ושומר אותו כקובץ
+def make_cancel_rate_chart(rows, out_path: str):
+    labels = [f"{r['y']}-{int(r['m']):02d}" for r in rows]
+    values = [float(r["cancel_rate"]) for r in rows]
+    plt.figure(figsize=(9, 3.2))
+    plt.plot(labels, values, marker="o")
+    plt.title("Cancel Rate by Month (%)")
+    plt.xlabel("Month")
+    plt.ylabel("Cancel Rate (%)")
+    plt.xticks(rotation=30, ha="right")
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=160)
+    plt.close()
+
+# יוצר גרף עמודות של המסלולים עם ההכנסות הגבוהות ביותר
+def make_revenue_routes_chart(rows, out_path: str):
+    labels = [f"{r['Origin']} - {r['Destination']}" for r in rows]
+    values = [float(r["revenue"]) for r in rows]
+    plt.figure(figsize=(9, 3.6))
+    plt.bar(labels, values)
+    plt.title("Top Revenue Routes (Last 90 Days)")
+    plt.xlabel("Route")
+    plt.ylabel("Revenue")
+    plt.xticks(rotation=25, ha="right")
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=160)
+    plt.close()
+
+#החזרה של דוחות מנהלים
+def get_manager_reports(app):
+    queries = {
+        "kpis": """
+            SELECT
+                SUM(CASE WHEN f.Dep_Date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                          AND f.Dep_Date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+                          AND f.Status = 'Scheduled' THEN 1 ELSE 0 END) AS scheduled_cnt,
+                SUM(CASE WHEN f.Dep_Date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                          AND f.Dep_Date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+                          AND f.Status = 'Full' THEN 1 ELSE 0 END) AS full_cnt,
+                SUM(CASE WHEN f.Dep_Date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                          AND f.Dep_Date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+                          AND f.Status = 'Completed' THEN 1 ELSE 0 END) AS completed_cnt,
+                SUM(CASE WHEN f.Dep_Date >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+                          AND f.Dep_Date < DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+                          AND LOWER(f.Status) IN ('cancelled','canceled') THEN 1 ELSE 0 END) AS cancelled_cnt
+            FROM Flight f;
+        """,
+        "cancel_rate": """
+            SELECT YEAR(Order_Date) AS y, MONTH(Order_Date) AS m,
+                   ROUND((SUM(CASE WHEN Order_status = 'Customer_Canceled' THEN 1 ELSE 0 END) / COUNT(*)) * 100, 2) AS cancel_rate
+            FROM Flight_Order
+            GROUP BY YEAR(Order_Date), MONTH(Order_Date)
+            ORDER BY y, m;
+        """,
+        "top_routes": """
+            SELECT r.Origin, r.Destination, COUNT(*) AS completed_flights
+            FROM Flight f
+            JOIN Route r ON r.Route_ID = f.Route_ID
+            WHERE f.Status = 'Completed'
+              AND f.Dep_Date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY r.Origin, r.Destination
+            ORDER BY completed_flights DESC
+            LIMIT 10;
+        """,
+        "crew_load": """
+            SELECT fc.ID AS employee_id,
+                   SUM(CASE WHEN r.Duration > 6 THEN r.Duration ELSE 0 END) AS long_hours,
+                   SUM(CASE WHEN r.Duration <= 6 THEN r.Duration ELSE 0 END) AS short_hours,
+                   ROUND(SUM(r.Duration), 2) AS total_hours
+            FROM Flight_Crew fc
+            JOIN Flight f ON f.Air_Craft_ID = fc.Air_Craft_ID
+                          AND f.Dep_Date = fc.Dep_Date
+                          AND f.Dep_Hour = fc.Dep_Hour
+            JOIN Route r ON r.Route_ID = f.Route_ID
+            WHERE f.Status = 'Completed'
+              AND f.Dep_Date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY fc.ID
+            ORDER BY total_hours DESC
+            LIMIT 20;
+        """,
+        "revenue_routes": """
+            SELECT r.Origin, r.Destination,
+                   ROUND(SUM(COALESCE(t.Price_Paid, 0)), 2) AS revenue,
+                   COUNT(*) AS tickets_sold
+            FROM Tickets t
+            JOIN Flight f ON t.Air_Craft_ID = f.Air_Craft_ID
+                          AND t.Dep_Date = f.Dep_Date
+                          AND t.Dep_Hour = f.Dep_Hour
+            JOIN Route r ON r.Route_ID = f.Route_ID
+            WHERE f.Status = 'Completed'
+              AND f.Dep_Date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+            GROUP BY r.Origin, r.Destination
+            ORDER BY revenue DESC
+            LIMIT 10;
+        """
+    }
+
+    results = {}
+    with db_cursor() as cursor:
+        for key, query in queries.items():
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            if key == "kpis":
+                kpi_row = rows[0] if rows else (0, 0, 0, 0)
+                results[key] = {
+                    "scheduled_cnt": kpi_row[0] or 0,
+                    "full_cnt": kpi_row[1] or 0,
+                    "completed_cnt": kpi_row[2] or 0,
+                    "cancelled_cnt": kpi_row[3] or 0,
+                }
+            elif key == "cancel_rate":
+                results[key] = [{"y": r[0], "m": r[1], "cancel_rate": r[2]} for r in rows]
+            elif key == "top_routes":
+                results[key] = [{"Origin": r[0], "Destination": r[1], "completed_flights": r[2]} for r in rows]
+            elif key == "crew_load":
+                results[key] = [{"employee_id": r[0], "long_hours": r[1], "short_hours": r[2], "total_hours": r[3]} for r in rows]
+            elif key == "revenue_routes":
+                results[key] = [{"Origin": r[0], "Destination": r[1], "revenue": r[2], "tickets_sold": r[3]} for r in rows]
+    return results
+
+#מעדכן סטטוס טיסה
+def update_orders_status_when_flight_completed():
+    query = """
+        UPDATE Flight_Order fo
+        JOIN Tickets t
+          ON t.Order_ID = fo.Order_ID
+        JOIN Flight f
+          ON f.Air_Craft_ID = t.Air_Craft_ID
+         AND f.Dep_Date     = t.Dep_Date
+         AND f.Dep_Hour     = t.Dep_Hour
+        SET fo.Order_status = 'Completed'
+        WHERE f.Status = 'Completed'
+          AND fo.Order_status = 'Active'
+    """
+    with db_cursor() as cur:
+        cur.execute(query)
+
+#שליפת פרטים של לקוח רשום בסיכום הזמנה
+def get_passport_and_birthdate_by_email(email):
+    query = """
+        SELECT Passport_Num, Birth_Date
+        FROM Registered_Customer
+        WHERE Email = %s
+    """
+    with db_cursor(dictionary=True) as cur:
+        cur.execute(query, (email,))
+        return cur.fetchone()

@@ -1,4 +1,4 @@
-from flask import render_template, Flask, redirect, request, session, flash
+from flask import render_template, Flask, redirect, request, session, flash, abort
 from flask_session import Session
 from datetime import timedelta, date
 import mysql.connector
@@ -21,7 +21,7 @@ app.config.update(
 
 
 Session(app)
-
+#עמוד בית
 @app.route('/')
 def home_page():
     if 'fullname' in session:
@@ -30,6 +30,7 @@ def home_page():
         return redirect('/homemgr/flights')
     return render_template('home_page.html')
 
+#עמוד התחברות ללקוח רשום
 @app.route('/logincust', methods=['GET','POST'])
 def login_cust():
     if request.method == 'POST':
@@ -44,6 +45,7 @@ def login_cust():
             return render_template('login_cust.html', error='פרטי ההתחברות שגויים')
     return render_template('login_cust.html')
 
+#עמוד התחברות למנהל
 @app.route('/loginmgr', methods=['GET','POST'])
 def loginman():
     if request.method == 'POST':
@@ -58,6 +60,7 @@ def loginman():
             return render_template('login_manager.html', error='פרטי ההתחברות שגויים')
     return render_template('login_manager.html')
 
+#עמוד הרשמה
 @app.route('/signup', methods=["POST", "GET"])
 def sign_up():
     if request.method == 'POST':
@@ -77,6 +80,7 @@ def sign_up():
         return redirect('/phonenums')
     return render_template('sign_up.html', today=date.today().isoformat())
 
+# הוספת מספרי טלפון למשתמש חדש
 @app.route('/phonenums', methods=["POST", "GET"])
 def insert_phones():
     if request.method == 'POST':
@@ -85,6 +89,7 @@ def insert_phones():
         return redirect('/search_order_flights')
     return render_template('phonenums.html', phonenums = session['phonenums'])
 
+#עמוד חיפוש טיסות
 @app.route('/search_order_flights')
 def search_order_flights():
     name = session.get('fullname', 'guest')
@@ -110,6 +115,7 @@ def search_order_flights():
         dests=dests,
         name=name)
 
+#עמוד בחירת מושבים
 @app.route("/search_order_flights/choosenumseat", methods=["GET", "POST"])
 def choosenumseats():
     name = session.get('fullname', 'guest')
@@ -149,7 +155,7 @@ def choosenumseats():
         econprice=chosen.get("economy_price"),
         busiprice=chosen.get("business_price")
     )
-
+#בוחר מקומות ומוודא שתואם למס' הכרטיסים שנבחרו
 @app.route("/search_order_flights/choosenumseat/chooseseats", methods=["POST", "GET"])
 def chooseseats():
     name = session.get('fullname', 'guest')
@@ -209,7 +215,7 @@ def chooseseats():
         economy_end_row=economy_end_row,
         economy_cols=economy_cols,
     )
-
+# מטפל בפרטי לקוח אורח, בודק שם באנגלית ומייל קיים ושומר בסשן
 @app.route('/guest_details', methods=["POST", "GET"])
 def guestdetails():
     name = session.get('fullname', 'guest')
@@ -226,6 +232,7 @@ def guestdetails():
         return redirect('/phoneguest')
     return render_template('guest_details.html', name=name, today=date.today().isoformat())
 
+# מקבל מספרי טלפון של אורח ושומר אותם בסשן
 @app.route('/phoneguest', methods=["POST", "GET"])
 def phoneguest():
     if request.method == 'POST':
@@ -233,31 +240,68 @@ def phoneguest():
         return redirect('/submitorder')
     return render_template('phoneguest.html', phonenums = session['guestphonenums'])
 
+# יוצר הזמנה ומכניס את כל הכרטיסים של משתמש רשום או אורח ומציג אישור
 @app.route('/submitorder', methods=["POST", "GET"])
 def submitorder():
-    if 'fullname' in session:
+    passport = None
+    b_date = None
+    if 'fullname' in session and 'mail' in session:
         name = session['fullname']
+        row = get_passport_and_birthdate_by_email(session['mail'])
+        if row:
+            passport = row["Passport_Num"]
+            b_date = row["Birth_Date"]
     else:
-        name = session['guestname']
+        name = session.get('guestname')
+        passport = None
+        b_date = None
     flightdetails = session["chosen_flight"]
-    econseats = session['chosenecon']
-    busiseats = session['chosenbusi']
+    econseats = session.get('chosenecon')
+    busiseats = session.get('chosenbusi')
     totalprice = 0
-    print(session['chosenecon'])
-    print(session['chosenbusi'])
     if econseats is not None:
         totalprice += len(econseats) * float(flightdetails["economy_price"])
-    if busiseats and flightdetails['business_price'] is not None:
+    if busiseats and flightdetails.get('business_price') is not None:
         totalprice += len(busiseats) * float(flightdetails['business_price'])
     if request.method == 'POST':
         if 'guestemail' in session:
             new_guest(session['guestemail'], session['guestname'], session['phones'])
-            orderid = insert_order_and_tickets(session['guestemail'], flightdetails['aircraft'], flightdetails['dep_date'], flightdetails['dep_time'], econseats, busiseats, flightdetails['economy_price'], flightdetails['business_price'], totalprice)
+            orderid = insert_order_and_tickets(
+                session['guestemail'],
+                flightdetails['aircraft'],
+                flightdetails['dep_date'],
+                flightdetails['dep_time'],
+                econseats,
+                busiseats,
+                flightdetails['economy_price'],
+                flightdetails['business_price'],
+                totalprice
+            )
         elif "mail" in session:
-            orderid = insert_order_and_tickets(session['mail'], flightdetails['aircraft'], flightdetails['dep_date'], flightdetails['dep_time'], econseats, busiseats, flightdetails['economy_price'], flightdetails['business_price'], totalprice)
+            orderid = insert_order_and_tickets(
+                session['mail'],
+                flightdetails['aircraft'],
+                flightdetails['dep_date'],
+                flightdetails['dep_time'],
+                econseats,
+                busiseats,
+                flightdetails['economy_price'],
+                flightdetails['business_price'],
+                totalprice
+            )
         return render_template('approved.html', orderid=orderid, name=name)
-    return render_template('submitorder.html', flightdetails=flightdetails, totalprice=totalprice, econseats=econseats, busiseats=busiseats)
+    return render_template(
+        'submitorder.html',
+        flightdetails=flightdetails,
+        totalprice=totalprice,
+        econseats=econseats,
+        busiseats=busiseats,
+        name=name,
+        passport=passport,
+        birth_date=b_date
+    )
 
+# הצגת פרטי הזמנה של אורח לפי מזהה הזמנה וכתובת מייל
 @app.route("/guestorder", methods=["GET", "POST"])
 def guestorder():
     name = session.get('fullname', 'guest')
@@ -271,6 +315,7 @@ def guestorder():
             return render_template('guestorder.html', error="ההזמנה לא נמצאה במערכת")
     return render_template("guestorder.html")
 
+# ביטול הזמנה על ידי אורח לפי מדיניות הביטולים והצגת אישור או שגיאה בהתאם להנחיות
 @app.route("/cancel_order", methods=["GET", "POST"])
 def guestorder_details():
     name = session.get('fullname', 'guest')
@@ -282,6 +327,7 @@ def guestorder_details():
             return render_template('guestorder_details.html',order=session['order'], tickets=session['tickets'], name=name, error=massege)
     return render_template('guestorder_details.html', order=session['order'], tickets=session['tickets'], name=name)
 
+# מציג הזמנות של לקוח רשום ומאפשר לבטל הזמנה לפי מדיניות הביטולים
 @app.route('/custorder_details', methods=["GET", "POST"])
 def custorder_details():
     name = session.get('fullname', 'guest')
@@ -298,6 +344,9 @@ def custorder_details():
         return render_template("custorder_details.html",orders=orders,name=name,good=message if cancelled else None,error=None if cancelled else message)
     return render_template("custorder_details.html", orders=orders,name=name)
 
+#---------------------------------מעבר לפונקציות מנהלים--------------------
+
+# מציג למנהל את רשימת הטיסות עם אפשרות לסינון ומסמן אם מטוס נוסף בהצלחה
 @app.route('/homemgr/flights')
 def flightsmgr():
     aircraft_added = request.args.get("aircraft_added")
@@ -305,7 +354,6 @@ def flightsmgr():
     origin = request.args.get('origin') or None
     destination = request.args.get('destination') or None
     status = request.args.get('status') or None
-
     flights = get_allflights_filtered(
         date=filtered_date,
         origin=origin,
@@ -314,7 +362,6 @@ def flightsmgr():
     )
     origins = get_origins()
     dests = get_dest()
-
     return render_template(
         'search_flightsmgr.html',
         flights=flights,
@@ -325,29 +372,25 @@ def flightsmgr():
         good = "המטוס נוסף בהצלחה למערכת" if aircraft_added else None
     )
 
+#  מאפשר למנהל לבטל טיסה אם היא עומדת בתנאי המדיניות ומציג הודעת הצלחה או שגיאה בהתאמה
 @app.route("/homemgr/cancelflight", methods=["POST", "GET"])
 def cancel_flight():
     if request.method == 'POST':
         aircraft = request.form.get("aircraft")
         origin = request.form.get("origin")
         destination = request.form.get("destination")
-
         dep_date = datetime.strptime(
             request.form.get("departure_date"), "%Y-%m-%d"
         ).date()
-
         dep_time = datetime.strptime(
             request.form.get("departure_time"), "%H:%M:%S"
         ).time()
-
         ok, msg = cancel_flight_if_allowed(
             aircraft, dep_date, dep_time, origin, destination
         )
-
         flights = get_allflights_filtered()
         origins = get_origins()
         dests = get_dest()
-
         if ok:
             return render_template(
                 "search_flightsmgr.html",
@@ -369,7 +412,7 @@ def cancel_flight():
                 admin_name=session['namemgr']
             )
 
-
+# מאפשר למנהל להוסיף עובד חדש עם בדיקות תקינות ומחזיר הודעת הצלחה או שגיאה
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])
 def addemployee():
     if request.method == 'POST':
@@ -394,6 +437,7 @@ def addemployee():
             return render_template('addemployee.html', good='העובד נוסף בהצלחה למערכת')
     return render_template('addemployee.html')
 
+# מאפשר למנהל להוסיף מטוס חדש תוך בדיקת המזהה חח"ע
 @app.route("/homemgr/addaircraft", methods=["POST", "GET"])
 def addaircraft():
     if request.method == 'POST':
@@ -409,6 +453,7 @@ def addaircraft():
         return redirect('/homemgr/addaircraft/chooseclass')
     return render_template('addaircraft.html', today=date.today().isoformat())
 
+# הגדרת גודל המחלקות בעת הוספת מטוס חדש
 @app.route("/homemgr/addaircraft/chooseclass", methods=["POST", "GET"])
 def chooseclass():
     if request.method == 'POST':
@@ -427,6 +472,7 @@ def chooseclass():
         return redirect('/homemgr/flights?aircraft_added=1')
     return render_template('addairclass.html', size=session['newaircraft'][3])
 
+#הזנת פרטי טיסה להוספה על ידי מנהל
 @app.route('/homemgr/addflight', methods=["POST", "GET"])
 def addflight():
     origins = get_origins()
@@ -441,15 +487,18 @@ def addflight():
         return redirect('/homemgr/addflight/chooseaircrafts')
     return render_template('addflight.html', origins=origins, dests=dests, today=date.today().isoformat())
 
+# מטוסים אפשריים לבחירה לפי התנאים הרלוונטים בעת הוספת טיסה
 @app.route('/homemgr/addflight/chooseaircrafts', methods=["POST", "GET"])
 def chooseaircrafts():
     if request.method == 'POST':
         session['aircraft'] = request.form.get('aircraft_id')
         return redirect('/homemgr/addflight/choosecrew')
     allaircrafts = get_specific_aricrafts(session['origin'], session['dest'], session['depdate'], session['deptime'])
+    if len(allaircrafts) == 0:
+        return render_template('chooseaircrafts.html', aircrafts=allaircrafts, error='אין מטוסיםם זמינים שיכולים לבצע את הטיסה המבוקשת')
     return render_template('chooseaircrafts.html', aircrafts=allaircrafts)
 
-
+# עובדים אפשריים לבחירה לפי התנאים הרלוונטים בעת הוספת טיסה
 @app.route('/homemgr/addflight/choosecrew', methods=["POST", "GET"])
 def choosecrew():
     route = get_route_by_origin_dest(session['origin'], session['dest'])
@@ -461,6 +510,34 @@ def choosecrew():
     req_attendants = 6 if size == 'Large' else 3
     pilots = get_available_pilots(session['origin'], session['depdate'], session['deptime'], is_long)
     attendants = get_available_attendants(session['origin'], session['depdate'], session['deptime'], is_long)
+    if size == 'Large':
+        if len(pilots) < 3 or len(attendants) < 6:
+            return render_template(
+                "choosecrew.html",
+                available_pilots=pilots,
+                available_attendants=attendants,
+                req_pilots=req_pilots,
+                req_attendants=req_attendants,
+                origin=session["origin"],
+                dest=session["dest"],
+                depdate=session["depdate"],
+                deptime=session["deptime"],
+                error="אין מספיק טייסים או דיילים להוצאת טיסה זו"
+            )
+    else:
+        if len(pilots) < 2 or len(attendants) < 3:
+            return render_template(
+                "choosecrew.html",
+                available_pilots=pilots,
+                available_attendants=attendants,
+                req_pilots=req_pilots,
+                req_attendants=req_attendants,
+                origin=session["origin"],
+                dest=session["dest"],
+                depdate=session["depdate"],
+                deptime=session["deptime"],
+                error="אין מספיק טייסים או דיילים להוצאת טיסה זו"
+            )
     if request.method == "POST":
         pilot_ids = [x.strip() for x in request.form.getlist("pilot_ids") if x.strip()]
         attendant_ids = [x.strip() for x in request.form.getlist("attendant_ids") if x.strip()]
@@ -487,6 +564,7 @@ def choosecrew():
         return redirect("/homemgr/addflight/subflight")
     return render_template("choosecrew.html", available_pilots=pilots, available_attendants=attendants, origin=session["origin"], dest=session["dest"], depdate=session["depdate"], deptime=session["deptime"],req_pilots=req_pilots, req_attendants=req_attendants,)
 
+# הגדרת מחירי מושבים לפי מחלקה ואישור הוספת טיסה
 @app.route('/homemgr/addflight/subflight', methods=["POST", "GET"])
 def submitflight():
     origin = session["origin"]
@@ -519,7 +597,6 @@ def submitflight():
                 errors.append("מחיר Business לא תקין")
         else:
             bus_val = None
-
         if errors:
             return render_template(
                 "submitflight.html",
@@ -531,11 +608,8 @@ def submitflight():
                 business_price=bus if bus is not None else "",
                 error=" | ".join(errors)
             )
-
         create_flight_and_assign_crew(aircraft_id,origin,dest,depdate,deptime,econ_val,bus_val,pilot_ids,attendant_ids,"Scheduled")
-
         return redirect("/homemgr/flights")
-
     return render_template(
         "submitflight.html",
         depdate=depdate, deptime=deptime, origin=origin, dest=dest,
@@ -546,18 +620,27 @@ def submitflight():
         business_price="",
         error=None
     )
+#הצגת דוחות וסטטיסטיקות למנהל
+@app.route("/homemgr/reports")
+def admin_reports():
+    if "namemgr" not in session:
+        abort(403)
+    data = get_manager_reports(app)
+    return render_template("statistics_admin.html", **data)
 
+#התנתקות מהמערכת
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
 
+#עדכון אוטומטי של סטטוס כל הטיסות בעת כניסה לעמודים הרלוונטים
 @app.before_request
 def auto_update_flight_status():
     if request.path.startswith(("/search_order_flights", "/homemgr")):
         update_flights_status()
         update_flights_fully_booked()
-
+        update_orders_status_when_flight_completed()
 
 if __name__ == '__main__':
     app.run(debug=True)

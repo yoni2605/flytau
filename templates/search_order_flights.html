@@ -132,12 +132,13 @@
                 </div>
 
                 {% if f[8] %}
-                <div class="price-box">
-                  <div class="price-label">Business</div>
-                  <div class="price-val">₪{{ f[8] }}</div>
-                </div>
+                  <div class="price-box">
+                    <div class="price-label">Business</div>
+                    <div class="price-val">₪{{ f[8] }}</div>
+                  </div>
+                {% else %}
+                  <div class="price-box price-box--ghost" aria-hidden="true"></div>
                 {% endif %}
-
 
                 <div class="flight-cta">
                   <span class="cta-text">המשך</span>

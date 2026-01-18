@@ -13,7 +13,6 @@
 
   --radius:20px;
 
-  /* שליטה עדינה בהזזה ימינה של אזור השדות (labels+inputs) */
   --fieldsShift: 44px;
   --labelW: 170px;
   --inputW: 340px;
@@ -29,7 +28,6 @@ body{
     radial-gradient(900px 600px at 50% 20%, rgba(255,255,255,.95), rgba(255,255,255,.85)),
     var(--bgImage);
 
-
   background-image: var(--bgImage);
   background-size: cover;
   background-position: center top;
@@ -37,7 +35,6 @@ body{
   background-attachment: fixed;
 }
 
-/* ===== Layout אחיד לכל הדפים ===== */
 main, .home{
   min-height:100vh;
   display:flex;
@@ -48,7 +45,6 @@ main, .home{
   gap:18px;
 }
 
-/* ===== Logo Badge ===== */
 .brand{
   width:112px;
   height:112px;
@@ -70,7 +66,6 @@ main, .home{
   box-shadow: 0 10px 22px rgba(0,0,0,.16);
 }
 
-/* ===== Card ===== */
 .card{
   width:100%;
   max-width:740px;
@@ -81,7 +76,6 @@ main, .home{
   box-shadow: 0 30px 90px rgba(0,0,0,.26);
 }
 
-/* ===== Typography ===== */
 .title, h1{
   text-align:center;
   font-size:34px;
@@ -97,7 +91,6 @@ main, .home{
   line-height:1.6;
 }
 
-/* ===== Home actions (דף הבית) ===== */
 .home-actions{
   margin-top:22px;
   display:flex;
@@ -107,7 +100,6 @@ main, .home{
   flex-direction: row-reverse;
 }
 
-/* Buttons */
 .btn{
   height:52px;
   min-width:260px;
@@ -138,7 +130,6 @@ main, .home{
 
 .btn-secondary:hover{ box-shadow: 0 16px 34px rgba(0,0,0,.10); }
 
-/* Divider */
 .divider{
   margin:22px 0 14px;
   display:flex;
@@ -155,7 +146,6 @@ main, .home{
   background: linear-gradient(90deg, transparent, rgba(11,31,51,.12), transparent);
 }
 
-/* Guest link */
 .ghost{
   display:block;
   width:100%;
@@ -173,7 +163,6 @@ main, .home{
 
 .ghost:hover{ background: rgba(234,240,249,.99); }
 
-/* Signup */
 .signup-text{
   margin-top:16px;
   text-align:center;
@@ -187,32 +176,21 @@ main, .home{
   text-decoration:none;
 }
 
-/* =========================================================
-   FORMS – FINAL (stable, no conflicts)
-   - Titles remain centered (because titles are outside form fields)
-   - Only field rows (label+input) are shifted right via --fieldsShift
-   ========================================================= */
-
-/* form container stays centered */
 .card form, .card .form{
   width:100%;
   max-width: 620px;
   margin: 22px auto 0;
 }
 
-/* each field row */
 .card form > div,
 .card .form > div{
   display:grid;
-  grid-template-columns: var(--labelW) var(--inputW); /* label | input */
+  grid-template-columns: var(--labelW) var(--inputW);
   gap: 12px 16px;
   align-items:center;
-
-  /* זה מה שאתה ביקשת: להזיז רק את השדות ימינה */
   transform: translateX(var(--fieldsShift));
 }
 
-/* label */
 .card form > div > label,
 .card .form > div > label{
   justify-self:end;
@@ -223,7 +201,6 @@ main, .home{
   color:var(--muted);
 }
 
-/* inputs */
 .card form > div > input,
 .card form > div > select,
 .card form > div > textarea,
@@ -250,7 +227,6 @@ main, .home{
   box-shadow: 0 0 0 4px rgba(31,111,235,.14);
 }
 
-/* submit button (NOT shifted) */
 .card form > button,
 .card form > input[type="submit"],
 .card .form > button,
@@ -269,7 +245,6 @@ main, .home{
   display:block;
 }
 
-/* links/divider inside form (NOT shifted) */
 .card form .divider,
 .card form .ghost,
 .card form .signup-text,
@@ -281,7 +256,6 @@ main, .home{
   margin-right:auto;
 }
 
-/* Mobile */
 @media (max-width:560px){
   .card{ padding:26px 18px; }
   .title{ font-size:28px; }
@@ -289,11 +263,10 @@ main, .home{
   .brand{ width:104px; height:104px; }
   .logo{ width:76px; height:76px; }
 
-  /* field rows stack */
   .card form > div,
   .card .form > div{
     grid-template-columns: 1fr;
-    transform: none; /* במובייל לא מזיזים ימינה */
+    transform: none;
   }
 
   .card form > div > label,
@@ -302,10 +275,6 @@ main, .home{
   }
 }
 
-/* =========================
-   Admin top menu
-   ========================= */
-
 .admin-menu{
   margin-top: 26px;
   display: grid;
@@ -313,7 +282,6 @@ main, .home{
   gap: 14px;
 }
 
-/* כפתור בתפריט מנהל */
 .admin-link{
   height: 52px;
   border-radius: 14px;
@@ -337,7 +305,6 @@ main, .home{
   transform: translateY(-1px);
 }
 
-/* מצב פעיל (לדף הנוכחי) – תוכל להוסיף class="active" */
 .admin-link.active{
   background: linear-gradient(180deg, var(--primary), var(--primary2));
   color: #fff;
@@ -345,14 +312,12 @@ main, .home{
   box-shadow: 0 14px 30px rgba(31,111,235,.35);
 }
 
-/* ===== Mobile ===== */
 @media (max-width: 720px){
   .admin-menu{
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* ===== Error Message ===== */
 .error-message{
   direction: rtl;
   display: flex;
@@ -374,7 +339,6 @@ main, .home{
   animation: errorFadeIn 0.25s ease-out;
 }
 
-/* icon */
 .error-message::before{
   content: "⚠️";
   flex-shrink: 0;
@@ -391,7 +355,6 @@ main, .home{
   font-size: 16px;
 }
 
-/* animation */
 @keyframes errorFadeIn{
   from{
     opacity: 0;
@@ -403,7 +366,6 @@ main, .home{
   }
 }
 
-/* mobile polish */
 @media (max-width: 520px){
   .error-message{
     padding: 12px 14px;
@@ -411,7 +373,6 @@ main, .home{
   }
 }
 
-/* ===== Success Message ===== */
 .success-message{
   direction: rtl;
   display: flex;
@@ -422,10 +383,10 @@ main, .home{
   margin: 14px 0 18px;
 
   border-radius: 14px;
-  background: #f0fdf4;            /* soft green */
+  background: #f0fdf4;
   border: 1px solid #86efac;
 
-  color: #14532d;                 /* dark green */
+  color: #14532d;
   font-size: 14px;
   font-weight: 500;
 
@@ -433,7 +394,6 @@ main, .home{
   animation: successFadeIn 0.25s ease-out;
 }
 
-/* icon */
 .success-message::before{
   content: "✔️";
   flex-shrink: 0;
@@ -450,7 +410,6 @@ main, .home{
   font-size: 16px;
 }
 
-/* animation */
 @keyframes successFadeIn{
   from{
     opacity: 0;
@@ -462,7 +421,6 @@ main, .home{
   }
 }
 
-/* mobile polish */
 @media (max-width: 520px){
   .success-message{
     padding: 12px 14px;
@@ -470,7 +428,6 @@ main, .home{
   }
 }
 
-/* ===== Address Box ===== */
 .address-box{
   margin-top: 14px;
   padding: 14px;
@@ -491,12 +448,12 @@ main, .home{
   font-size: 14px;
 }
 
-/* inputs inside address */
 .address-box .input{
   width: 100%;
   box-sizing: border-box;
   background: #ffffff;
 }
+
 .address-title{
   font-weight: 600;
   margin: 0 0 8px;
@@ -508,23 +465,21 @@ main, .home{
   flex-direction: column;
   gap: 8px;
 }
+
 .address-box .input{
   width: 100%;
   box-sizing: border-box;
-
-  /* ואם אתה רוצה לוודא שזה נראה כמו שאר השדות */
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: #fff;
 }
-/* במקום .form > div > .input  */
+
 .form .input{
   width: 100%;
   box-sizing: border-box;
 }
 
-/* ===== Filters Row (one-line, professional) ===== */
 .form.filters{ margin-top: 8px; }
 
 .filters-row{
@@ -537,14 +492,12 @@ main, .home{
 .filters-row .field{ min-width: 0; }
 .filters-row .label{ margin-bottom: 6px; }
 
-/* keep inputs consistent in a compact filter bar */
 .filters-row .input{
   width: 100%;
 }
 
-/* buttons align nicely with inputs */
 .filter-btn{
-  height: 48px;            /* תתאים אם ה-input שלך בגובה אחר */
+  height: 48px;
   padding: 0 16px;
   border-radius: 14px;
   display: inline-flex;
@@ -553,7 +506,6 @@ main, .home{
   white-space: nowrap;
 }
 
-/* responsive: break to 2 columns on medium screens */
 @media (max-width: 980px){
   .filters-row{
     grid-template-columns: repeat(2, minmax(160px, 1fr));
@@ -561,13 +513,12 @@ main, .home{
   .filter-btn{ width: 100%; }
 }
 
-/* responsive: single column on small screens */
 @media (max-width: 520px){
   .filters-row{
     grid-template-columns: 1fr;
   }
 }
-/* ===== Filters: one-line without breaking existing .form styles ===== */
+
 .form.filters{
   display: flex;
   flex-wrap: wrap;
@@ -575,13 +526,11 @@ main, .home{
   align-items: flex-end;
 }
 
-/* keep your existing styling logic (.form > div > .input) intact */
 .form.filters > div{
-  flex: 1 1 190px;   /* כל שדה “תופס מקום” ונשבר יפה כשאין מקום */
+  flex: 1 1 190px;
   min-width: 170px;
 }
 
-/* actions stay together */
 .form.filters > .filters-actions{
   flex: 0 0 auto;
   min-width: auto;
@@ -590,10 +539,9 @@ main, .home{
   align-items: flex-end;
 }
 
-/* make buttons same height as inputs (אם צריך) */
 .form.filters .filters-actions .primary,
 .form.filters .filters-actions .btn{
-  height: 48px;              /* אם ה-input שלך בגובה אחר תגיד לי ואכוון */
+  height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -602,7 +550,6 @@ main, .home{
   border-radius: 16px;
 }
 
-/* responsive */
 @media (max-width: 720px){
   .form.filters > div{
     flex: 1 1 100%;
@@ -615,11 +562,7 @@ main, .home{
     width: 100%;
   }
 }
-/* =========================
-   FILTER BAR FIX (professional)
-   ========================= */
 
-/* כל ה-form הזה יהיה שורה אחת */
 .card .form.filters{
   display: flex;
   flex-wrap: wrap;
@@ -627,7 +570,6 @@ main, .home{
   align-items: flex-end;
 }
 
-/* מבטל את ה-grid וה-הזזה שהוגדרו לכל form רגיל */
 .card .form.filters > div{
   display: flex !important;
   flex-direction: column;
@@ -640,7 +582,6 @@ main, .home{
   min-width: 170px;
 }
 
-/* label בפילטרים */
 .card .form.filters > div > label{
   justify-self: unset !important;
   text-align: right;
@@ -650,14 +591,12 @@ main, .home{
   color: var(--muted);
 }
 
-/* שדות */
 .card .form.filters > div > input,
 .card .form.filters > div > select{
   width: 100%;
   height: 48px;
 }
 
-/* אזור כפתורים */
 .card .form.filters > .filters-actions{
   flex: 0 0 auto;
   min-width: auto;
@@ -666,7 +605,6 @@ main, .home{
   align-items: flex-end;
 }
 
-/* כפתורי פילטר – קומפקטיים (כי .btn אצלך min-width:260) */
 .card .form.filters .filter-action{
   min-width: 110px !important;
   height: 48px !important;
@@ -675,7 +613,6 @@ main, .home{
   box-shadow: none;
 }
 
-/* רספונסיבי */
 @media (max-width: 720px){
   .card .form.filters > div{
     flex: 1 1 100%;
@@ -688,21 +625,16 @@ main, .home{
     min-width: 0 !important;
   }
 }
-/* =========================
-   FILTER BAR: one line + compact
-   ========================= */
 
-/* שורה אחת תמיד (בדסקטופ) */
 .card .form.filters{
   display: flex;
-  flex-wrap: nowrap;          /* <-- זה מה שמונע ירידה שורה */
+  flex-wrap: nowrap;
   gap: 12px;
   align-items: flex-end;
 }
 
-/* כל שדה קומפקטי ולא נמרח */
 .card .form.filters > div{
-  flex: 0 0 auto;             /* לא מתרחב */
+  flex: 0 0 auto;
   min-width: 0;
   transform: none !important;
   grid-template-columns: none !important;
@@ -711,22 +643,19 @@ main, .home{
   gap: 6px;
 }
 
-/* גובה קטן יותר */
 .card .form.filters > div > input,
 .card .form.filters > div > select{
-  height: 40px;               /* קטן יותר */
+  height: 40px;
   padding: 0 12px;
   border-radius: 14px;
   font-size: 14px;
 }
 
-/* רוחבים קומפקטיים לכל שדה */
 .card .form.filters .f-date{ width: 160px; }
 .card .form.filters .f-origin{ width: 180px; }
 .card .form.filters .f-dest{ width: 180px; }
 .card .form.filters .f-status{ width: 170px; }
 
-/* כפתורים קטנים */
 .card .form.filters .filters-actions{
   display: flex;
   gap: 10px;
@@ -741,19 +670,16 @@ main, .home{
   border-radius: 14px;
 }
 
-/* מובייל: כן מאפשרים שבירה */
 @media (max-width: 860px){
   .card .form.filters{ flex-wrap: wrap; }
 }
+
 .card .form.filters > div > label{
   font-size: 12px;
   font-weight: 800;
   color: var(--muted);
   margin-bottom: 2px;
 }
-/* =========================
-   FILTER BAR: ultra-compact + no overflow
-   ========================= */
 
 .card .form.filters{
   display:flex;
@@ -763,7 +689,6 @@ main, .home{
   width: 100%;
 }
 
-/* כל השדות יכולים להתכווץ בתוך הקרד */
 .card .form.filters > div{
   transform: none !important;
   grid-template-columns: none !important;
@@ -772,31 +697,27 @@ main, .home{
   flex-direction: column;
   gap: 4px;
 
-  min-width: 0;               /* קריטי: מאפשר טקסט להתכווץ */
+  min-width: 0;
 }
 
-/* שדות: נמוכים/דקים */
 .card .form.filters > div > input,
 .card .form.filters > div > select{
-  height: 34px;               /* עוד יותר קטן */
+  height: 34px;
   padding: 0 10px;
   border-radius: 12px;
   font-size: 13px;
 }
 
-/* תוויות קטנות */
 .card .form.filters > div > label{
   font-size: 11px;
   margin-bottom: 0;
 }
 
-/* רוחבי בסיס קטנים + אפשרות להתכווץ */
 .card .form.filters .f-date   { flex: 0 1 140px; }
 .card .form.filters .f-origin { flex: 0 1 150px; }
 .card .form.filters .f-dest   { flex: 0 1 150px; }
 .card .form.filters .f-status { flex: 0 1 170px; }
 
-/* כפתורים: סופר קומפקט */
 .card .form.filters .filters-actions{
   display:flex;
   gap: 8px;
@@ -806,13 +727,12 @@ main, .home{
 
 .card .form.filters .filters-actions .filter-action{
   height: 34px !important;
-  min-width: 70px !important;     /* היה 92 */
+  min-width: 70px !important;
   padding: 0 10px !important;
   border-radius: 12px;
   font-size: 13px;
 }
 
-/* אם עדיין צפוף בדסקטופ קטן—תן לפילטרים גלילה אופקית רק לשורה */
 @media (max-width: 860px){
   .card .form.filters{
     overflow-x: auto;
@@ -826,7 +746,6 @@ main, .home{
   font-size: 0.85em;
   color: #666;
 
-  /* החלק החשוב */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -835,7 +754,6 @@ main, .home{
   direction: rtl;
   text-align: center;
 }
-
 
 .kbd {
   display: inline-block;
@@ -855,7 +773,6 @@ main, .home{
   gap: 12px;
 }
 
-/* בגלל RTL – שמאל זה בעצם flex-end */
 .select-row {
   flex-direction: row-reverse;
 }
@@ -899,7 +816,6 @@ main, .home{
   box-sizing: border-box;
 }
 
-/* numeric inputs – clean & modern */
 input[type="number"] {
   height: 44px;
   padding: 0 14px;
@@ -912,29 +828,22 @@ input[type="number"] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* focus state */
 input[type="number"]:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* placeholder */
 input[type="number"]::placeholder {
   color: #9ca3af;
   font-size: 14px;
 }
 
-/* remove ugly spinner spacing */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-
-/* =========================
-   FLIGHTS LIST (cards)
-   ========================= */
 .flights-list{
   margin-top: 18px;
   display: grid;
@@ -1076,7 +985,6 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 }
 
-/* empty */
 .empty-state{
   margin-top: 18px;
   padding: 18px;
@@ -1108,8 +1016,6 @@ input[type="number"]::-webkit-outer-spin-button {
 .btn.btn-cancel:hover {
   background: #B71C1C !important;
 }
-
-/* ===== Seat Selection ===== */
 
 .legend {
   text-align: center;
@@ -1158,12 +1064,10 @@ input[type="number"]::-webkit-outer-spin-button {
   cursor: not-allowed;
 }
 
-/* hide checkbox */
 .seat input {
   display: none;
 }
 
-/* label inner span should fill */
 .seat span {
   width: 100%;
   height: 100%;
@@ -1212,7 +1116,6 @@ input[type="number"]::-webkit-outer-spin-button {
   transform: translateY(-1px);
 }
 
-
 .btn.btn-cancel.btn-cancel-lg{
   height: 52px !important;
   min-width: 260px !important;
@@ -1226,4 +1129,122 @@ input[type="number"]::-webkit-outer-spin-button {
 .btn.btn-cancel.btn-cancel-lg:hover{
   box-shadow: 0 16px 34px rgba(0,0,0,.12) !important;
   transform: translateY(-1px);
+}
+
+.flight-prices{
+  grid-template-columns: 1fr 1fr 110px;
+  align-items: stretch;
+}
+
+.flight-cta{
+  width: 110px;
+  justify-self: end;
+}
+
+.price-box--ghost{
+  visibility: hidden;
+}
+
+.dash-kpi{
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kpi-box{
+  border: 1px solid rgba(11,31,51,.10);
+  background: rgba(255,255,255,.96);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.06);
+}
+
+.kpi-title{
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.kpi-val{
+  margin-top: 6px;
+  font-weight: 1000;
+  font-size: 26px;
+}
+
+.dash-grid2{
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.dash-panel{
+  border: 1px solid rgba(11,31,51,.10);
+  background: rgba(255,255,255,.96);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.06);
+}
+
+.panel-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.panel-title{
+  font-weight: 1000;
+  font-size: 15px;
+}
+
+.panel-sub{
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.dash-img{
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(11,31,51,.08);
+  background: #fff;
+}
+
+.dash-table-wrap{
+  margin-top: 10px;
+  overflow-x: auto;
+}
+
+.dash-table{
+  width:100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dash-table th, .dash-table td{
+  padding: 10px;
+  border-bottom: 1px solid rgba(11,31,51,.08);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dash-table th{
+  background: #f7fbff;
+  font-weight: 1000;
+}
+
+.dash-muted{ color: var(--muted); font-weight: 800; }
+
+.dash-empty{
+  border: 1px dashed rgba(11,31,51,.18);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 900;
+  background: rgba(243,246,251,.7);
 }

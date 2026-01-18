@@ -22,7 +22,7 @@
         <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
         <a href="/homemgr/addaircraft" class="admin-link">הוספת מטוס</a>
         <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
-        <a href="/admin/reports" class="admin-link">סטטיסטיקות ודוחות</a>
+        <a href="/homemgr/reports" class="admin-link">סטטיסטיקות ודוחות</a>
       </nav>
               {% if error %}
           <div class="error-message">
@@ -70,10 +70,10 @@
           <label class="label">סטטוס טיסה</label>
           <select class="input" name="status">
             <option value="" {% if request.args.get('status','') == '' %}selected{% endif %}>כל הסטטוסים</option>
-            <option value="Scheduled" {% if request.args.get('status') == 'Scheduled' %}selected{% endif %}>מתוכננת</option>
-            <option value="Full" {% if request.args.get('status') == 'Full' %}selected{% endif %}>תפוסה מלאה</option>
-            <option value="Completed" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>התקיימה</option>
-            <option value="Cancelled" {% if request.args.get('status') == 'Cancelled' %}selected{% endif %}>בוטלה</option>
+            <option value="SCHEDULED" {% if request.args.get('status') == 'Scheduled' %}selected{% endif %}>מתוכננת</option>
+            <option value="FULLY BOOKED" {% if request.args.get('status') == 'Full' %}selected{% endif %}>תפוסה מלאה</option>
+            <option value="COMPLETED" {% if request.args.get('status') == 'Completed' %}selected{% endif %}>התקיימה</option>
+            <option value="CANCELED" {% if request.args.get('status') == 'Cancelled' %}selected{% endif %}>בוטלה</option>
           </select>
         </div>
 
@@ -118,7 +118,7 @@
                 </td>
                 <td style="padding:8px; border:1px solid var(--border); text-align:center;">{{ f[9] }}</td>
                   <td style="padding:8px; border:1px solid var(--border); text-align:center; white-space:nowrap;">
-                    {% if f[9] != 'Cancelled' %}
+                    {% if f[9] != 'CANCELED' and f[9] != 'COMPLETED' %}
                     <form method="post" action="/homemgr/cancelflight" style="display:inline;">
                       <input type="hidden" name="aircraft" value="{{ f[0] }}">
                       <input type="hidden" name="departure_date" value="{{ f[1] }}">
@@ -127,8 +127,10 @@
                       <input type="hidden" name="destination" value="{{ f[4] }}">
                       <button type="submit" class="btn btn-cancel">בטל</button>
                     </form>
-                    {% else %}
+                    {% elif f[9] == 'CANCELED'  %}
                       בוטלה
+                    {% elif f[9] == 'COMPLETED'  %}
+                     בוצעה
                     {% endif %}
                   </td>
 

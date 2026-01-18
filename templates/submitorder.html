@@ -13,36 +13,56 @@
   </div>
 
   <div class="card">
-    <h1 class="title">פרטי ההזמנה</h1>
-    <div class="flight-details" style="margin-top:14px; margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
-        <p><strong>מטוס</strong> {{ flightdetails['aircraft'] }}</p>
-        <p><strong>תאריך המראה:</strong> {{ flightdetails['dep_date'] }}</p>
-        <p><strong>שעת המראה:</strong> {{ flightdetails['dep_time'] }}</p>
-        <p><strong>מקור:</strong> {{ flightdetails['origin'] }}</p>
-        <p><strong>יעד:</strong> {{ flightdetails['destination'] }}</p><br>
-        <p><strong>מושבים שנבחרו</strong>
-          {% if econseats %}
-            <p>
-          {% for s in econseats %}
-            {{ s }},
-          {% endfor %}
-        <strong>Economy</strong>
-          {% endif %}
-          </p>
-          {% if busiseats %}
-        <p>
-          {% for s in busiseats %}
-            {{ s }},
-          {% endfor %}
-            <strong>Business</strong>
-          {% endif %}
+  <h1 class="title">פרטי ההזמנה</h1>
 
-          </p>
-        <br>
-          <div>
-              <label class="label"><strong> סה"כ לתשלום</strong> {{ totalprice }} ש"ח</label>
-        </div>
-      <form class="form" method="post" action="/submitorder">
+  <div class="flight-details" style="margin-top:14px; margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
+    <p><strong>שם מלא:</strong> {{ name }}</p>
+
+    {% if passport and birth_date %}
+      <p><strong>מספר דרכון:</strong> {{ passport }}</p>
+      <p><strong>תאריך לידה:</strong> {{ birth_date }}</p>
+    {% endif %}
+  </div>
+
+  <div class="flight-details" style="margin-top:14px; margin-bottom:16px; padding:12px; border:1px solid var(--border); border-radius:10px; background:#f9faff;">
+    <p><strong>מטוס</strong> {{ flightdetails['aircraft'] }}</p>
+    <p><strong>תאריך המראה:</strong> {{ flightdetails['dep_date'] }}</p>
+    <p><strong>שעת המראה:</strong> {{ flightdetails['dep_time'] }}</p>
+    <p><strong>מקור:</strong> {{ flightdetails['origin'] }}</p>
+    <p><strong>יעד:</strong> {{ flightdetails['destination'] }}</p><br>
+
+    <p><strong>מושבים שנבחרו</strong></p>
+
+    {% if econseats %}
+      <p>
+        {% for s in econseats %}
+          {{ s }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+        <strong>Economy</strong>
+      </p>
+    {% endif %}
+
+    {% if busiseats %}
+      <p>
+        {% for s in busiseats %}
+          {{ s }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+        <strong>Business</strong>
+      </p>
+    {% endif %}
+
+    <br>
+    <div>
+      <label class="label"><strong>סה"כ לתשלום</strong> {{ totalprice }} ש"ח</label>
+    </div>
+
+    <form class="form" method="post" action="/submitorder">
+      <button class="primary" type="submit">
+        לתשלום וסיום הזמנה
+      </button>
+    </form>
+  </div>
+</div>    <form class="form" method="post" action="/submitorder">
           <button class="primary" type="submit">
           לתשלום וסיום הזמנה
         </button>

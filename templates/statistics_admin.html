@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLYTAU - דוחות מנהלים</title>
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+  <main class="home">
+    <section class="brand">
+      <img class="logo" src="/static/logo.png" alt="FLYTAU Logo">
+    </section>
+
+    <section class="card" aria-label="דוחות מנהלים">
+      <h3 class="title">שלום, {{ session['namemgr'] }}</h3>
+      <nav class="admin-menu">
+        <a href="/homemgr/flights" class="admin-link">חיפוש בלוח טיסות</a>
+        <a href="/homemgr/addemployee" class="admin-link">הוספת אנשי צוות</a>
+        <a href="/homemgr/addaircraft" class="admin-link">הוספת מטוס</a>
+        <a href="/homemgr/addflight" class="admin-link">הוספת טיסות</a>
+        <a href="/homemgr/reports" class="admin-link active">סטטיסטיקות ודוחות</a>
+      </nav>
+
+      <h2 class="title" style="margin-top:14px;">דוחות מנהלים</h2>
+      <p class="subtitle">תמונת מצב תפעולית</p>
+
+      <div class="dash-kpi">
+        <div class="kpi-box">
+          <div class="kpi-title">מתוכננות החודש</div>
+          <div class="kpi-val">{{ kpis.scheduled_cnt or 0 }}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">תפוסה מלאה החודש</div>
+          <div class="kpi-val">{{ kpis.full_cnt or 0 }}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">הושלמו החודש</div>
+          <div class="kpi-val">{{ kpis.completed_cnt or 0 }}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">בוטלו החודש</div>
+          <div class="kpi-val">{{ kpis.cancelled_cnt or 0 }}</div>
+        </div>
+      </div>
+
+      <div class="dash-grid2">
+
+        <div class="dash-panel">
+          <div class="panel-head">
+            <div class="panel-title">שיעור ביטולים בהזמנות</div>
+            <div class="panel-sub">לפי חודש</div>
+          </div>
+
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>שנה</th>
+                  <th>חודש</th>
+                  <th>אחוז ביטול</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in cancel_rate %}
+                  <tr>
+                    <td style="text-align:center;">{{ r.y }}</td>
+                    <td style="text-align:center;">{{ r.m }}</td>
+                    <td style="text-align:center; font-weight:1000;">{{ "%.2f"|format(r.cancel_rate or 0) }}%</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="3" class="dash-muted" style="text-align:center;">אין נתונים</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dash-panel">
+          <div class="panel-head">
+            <div class="panel-title">הכנסות לפי קו</div>
+            <div class="panel-sub">90 ימים אחרונים</div>
+          </div>
+
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>קו</th>
+                  <th>כרטיסים</th>
+                  <th>הכנסה</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in revenue_routes %}
+                  <tr>
+                    <td>{{ r.Origin }} - {{ r.Destination }}</td>
+                    <td style="text-align:center;">{{ r.tickets_sold }}</td>
+                    <td style="text-align:center; font-weight:1000;">₪{{ "%.0f"|format(r.revenue or 0) }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="3" class="dash-muted" style="text-align:center;">אין נתונים</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dash-grid2">
+
+        <div class="dash-panel">
+          <div class="panel-head">
+            <div class="panel-title">Top Routes שבוצעו</div>
+            <div class="panel-sub">30 ימים אחרונים (Completed)</div>
+          </div>
+
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>קו</th>
+                  <th>טיסות</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for r in top_routes %}
+                  <tr>
+                    <td>{{ r.Origin }} - {{ r.Destination }}</td>
+                    <td style="text-align:center; font-weight:1000;">{{ r.completed_flights }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="2" class="dash-muted" style="text-align:center;">אין נתונים</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="dash-panel">
+          <div class="panel-head">
+            <div class="panel-title">עומס צוות</div>
+            <div class="panel-sub">שעות טיסה (30 ימים, Completed)</div>
+          </div>
+
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>ID עובד</th>
+                  <th>שעות קצרות</th>
+                  <th>שעות ארוכות</th>
+                  <th>סה״כ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in crew_load %}
+                  <tr>
+                    <td style="text-align:center;">{{ c.employee_id }}</td>
+                    <td style="text-align:center;">{{ "%.1f"|format(c.short_hours or 0) }}</td>
+                    <td style="text-align:center;">{{ "%.1f"|format(c.long_hours or 0) }}</td>
+                    <td style="text-align:center; font-weight:1000;">{{ "%.1f"|format(c.total_hours or 0) }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="4" class="dash-muted" style="text-align:center;">אין נתונים</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <div class="home-actions">
+      <a href="/logout" class="btn btn-secondary">התנתק מהמערכת</a>
+    </div>
+  </main>
+</body>
+</html>
