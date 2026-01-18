@@ -85,7 +85,7 @@ def sign_up():
 def insert_phones():
     if request.method == 'POST':
         session['phones'] = request.form.getlist('phones')
-        new_user(session['fullname'], session['email'], session['password'], session['passport'], session['dob'], session['singup_date'], session['phones'])
+        new_user(session['fullname'], session['mail'], session['password'], session['passport'], session['dob'], session['singup_date'], session['phones'])
         return redirect('/search_order_flights')
     return render_template('phonenums.html', phonenums = session['phonenums'])
 
@@ -96,7 +96,7 @@ def search_order_flights():
     filtered_date = request.args.get('date') or None
     origin = request.args.get('origin') or None
     destination = request.args.get('destination') or None
-    status = 'Scheduled' or None
+    status = 'SCHEDULED'
 
     flights = get_allflights_filtered(
         date=filtered_date,
