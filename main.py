@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from utils import *
 import os
 from dotenv import load_dotenv
+from functools import wraps
 
 load_dotenv()
 app = Flask(__name__)
@@ -19,11 +20,19 @@ app.config.update(
     SESSION_COOKIE_SECURE = True
 )
 
+def admin_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get("is_admin"):
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapper
 
 Session(app)
 #עמוד בית
 @app.route('/')
 def home_page():
+    session['is_admin'] = False
     if 'fullname' in session:
         return redirect('/search_order_flights')
     elif 'namemgr' in session:
@@ -55,6 +64,7 @@ def loginman():
             session.clear()
             session['id'] = id
             session['namemgr'] = getmgr(id)
+            session['is_admin'] = True
             return redirect('/homemgr/flights')
         else:
             return render_template('login_manager.html', error='פרטי ההתחברות שגויים')
@@ -348,6 +358,7 @@ def custorder_details():
 
 # מציג למנהל את רשימת הטיסות עם אפשרות לסינון ומסמן אם מטוס נוסף בהצלחה
 @app.route('/homemgr/flights')
+@admin_required
 def flightsmgr():
     aircraft_added = request.args.get("aircraft_added")
     filtered_date = request.args.get('date') or None
@@ -374,6 +385,7 @@ def flightsmgr():
 
 #  מאפשר למנהל לבטל טיסה אם היא עומדת בתנאי המדיניות ומציג הודעת הצלחה או שגיאה בהתאמה
 @app.route("/homemgr/cancelflight", methods=["POST", "GET"])
+@admin_required
 def cancel_flight():
     if request.method == 'POST':
         aircraft = request.form.get("aircraft")
@@ -414,6 +426,7 @@ def cancel_flight():
 
 # מאפשר למנהל להוסיף עובד חדש עם בדיקות תקינות ומחזיר הודעת הצלחה או שגיאה
 @app.route('/homemgr/addemployee', methods=["POST", "GET"])
+@admin_required
 def addemployee():
     if request.method == 'POST':
         role = request.form.get('role')
@@ -439,6 +452,7 @@ def addemployee():
 
 # מאפשר למנהל להוסיף מטוס חדש תוך בדיקת המזהה חח"ע
 @app.route("/homemgr/addaircraft", methods=["POST", "GET"])
+@admin_required
 def addaircraft():
     if request.method == 'POST':
         id = request.form.get('id')
@@ -455,6 +469,7 @@ def addaircraft():
 
 # הגדרת גודל המחלקות בעת הוספת מטוס חדש
 @app.route("/homemgr/addaircraft/chooseclass", methods=["POST", "GET"])
+@admin_required
 def chooseclass():
     if request.method == 'POST':
         ok, result = validate_seats(request.form.get("econrow"), request.form.get("econcol"), max_rows=25, max_cols=10)
@@ -474,6 +489,7 @@ def chooseclass():
 
 #הזנת פרטי טיסה להוספה על ידי מנהל
 @app.route('/homemgr/addflight', methods=["POST", "GET"])
+@admin_required
 def addflight():
     origins = get_origins()
     dests = get_dest()
@@ -489,6 +505,7 @@ def addflight():
 
 # מטוסים אפשריים לבחירה לפי התנאים הרלוונטים בעת הוספת טיסה
 @app.route('/homemgr/addflight/chooseaircrafts', methods=["POST", "GET"])
+@admin_required
 def chooseaircrafts():
     if request.method == 'POST':
         session['aircraft'] = request.form.get('aircraft_id')
@@ -500,6 +517,7 @@ def chooseaircrafts():
 
 # עובדים אפשריים לבחירה לפי התנאים הרלוונטים בעת הוספת טיסה
 @app.route('/homemgr/addflight/choosecrew', methods=["POST", "GET"])
+@admin_required
 def choosecrew():
     route = get_route_by_origin_dest(session['origin'], session['dest'])
     duration = float(route[1])
@@ -566,6 +584,7 @@ def choosecrew():
 
 # הגדרת מחירי מושבים לפי מחלקה ואישור הוספת טיסה
 @app.route('/homemgr/addflight/subflight', methods=["POST", "GET"])
+@admin_required
 def submitflight():
     origin = session["origin"]
     dest = session["dest"]
@@ -622,6 +641,7 @@ def submitflight():
     )
 #הצגת דוחות וסטטיסטיקות למנהל
 @app.route("/homemgr/reports")
+@admin_required
 def admin_reports():
     if "namemgr" not in session:
         abort(403)
@@ -641,6 +661,11 @@ def auto_update_flight_status():
         update_flights_status()
         update_flights_fully_booked()
         update_orders_status_when_flight_completed()
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template("403.html"), 403
+
 
 if __name__ == '__main__':
     app.run(debug=True)
