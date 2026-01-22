@@ -177,6 +177,54 @@ def chooseseats():
     economy_start_row = business_rows + 1
     economy_end_row = business_rows + economy_rows
     taken_keys = get_taken_seat_for_flight(session['chosen_flight']['aircraft'], session['chosen_flight']['dep_date'], session['chosen_flight']['dep_time'])
+    has_business = session["chosen_flight"]["business_price"] is not None
+    cap_econ = economy_rows * economy_cols
+    cap_busi = business_rows * business_cols if has_business else 0
+    req_econ = int(session.get("numecon") or 0)
+    req_busi = int(session.get("numbusi") or 0) if has_business else 0
+    taken_econ = 0
+    taken_busi = 0
+    for key in taken_keys:
+        r_str, c_str = key.split(":")
+        r = int(r_str)
+        c = int(c_str)
+        if has_business and 1 <= r <= business_rows and 1 <= c <= business_cols:
+            taken_busi += 1
+        elif economy_start_row <= r <= economy_end_row and 1 <= c <= economy_cols:
+            taken_econ += 1
+    if has_business and (taken_busi + req_busi > cap_busi):
+        free = max(cap_busi - taken_busi, 0)
+        return render_template(
+            "chooseseats.html",
+            name=name,
+            aircraft_id=session['chosen_flight']['aircraft'],
+            dep_date=session['chosen_flight']['dep_date'],
+            dep_hour=session['chosen_flight']['dep_time'],
+            taken_keys=taken_keys,
+            business_rows=business_rows,
+            business_cols=business_cols,
+            economy_start_row=economy_start_row,
+            economy_end_row=economy_end_row,
+            economy_cols=economy_cols,
+            error=f"אין מספיק מושבים פנויים ב-Buisness Class. פנויים: {free}, ביקשת: {req_busi}"
+        )
+
+    if (taken_econ + req_econ > cap_econ):
+        free = max(cap_econ - taken_econ, 0)
+        return render_template(
+            "chooseseats.html",
+            name=name,
+            aircraft_id=session['chosen_flight']['aircraft'],
+            dep_date=session['chosen_flight']['dep_date'],
+            dep_hour=session['chosen_flight']['dep_time'],
+            taken_keys=taken_keys,
+            business_rows=business_rows,
+            business_cols=business_cols,
+            economy_start_row=economy_start_row,
+            economy_end_row=economy_end_row,
+            economy_cols=economy_cols,
+            error=f"אין מספיק מושבים פנויים ב-Economy Class. פנויים: {free}, ביקשת: {req_econ}"
+        )
     if request.method == 'POST':
         numecon = request.form.getlist('seatsecon')
         numbusi = request.form.getlist('seatsbusi')
@@ -235,6 +283,8 @@ def guestdetails():
             session['guestname'] = request.form.get('fullname')
         else:
             return render_template('guest_details.html', error='נא להכניס שם מלא באנגלית בלבד', name=name, today=date.today().isoformat())
+        session['guestpassport'] = request.form.get('passport')
+        session['guestdob'] = request.form.get('dob')
         session['guestemail'] = request.form.get('email')
         session['guestphonenums'] = int(request.form.get('phone_nums'))
         if mailexists(session['guestemail']) == True:
@@ -263,8 +313,8 @@ def submitorder():
             b_date = row["Birth_Date"]
     else:
         name = session.get('guestname')
-        passport = None
-        b_date = None
+        passport = session['guestpassport']
+        b_date = session['guestdob']
     flightdetails = session["chosen_flight"]
     econseats = session.get('chosenecon')
     busiseats = session.get('chosenbusi')
@@ -664,6 +714,7 @@ def auto_update_flight_status():
 
 @app.errorhandler(403)
 def forbidden(e):
+    session.clear()
     return render_template("403.html"), 403
 
 
